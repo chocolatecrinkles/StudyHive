@@ -55,7 +55,7 @@ ROOT_URLCONF = 'StudyHive.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates/app_StudyHive'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
