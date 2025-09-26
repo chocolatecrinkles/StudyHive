@@ -1,1 +1,1 @@
-## Familiarizing with GIT and Python Django Project 
+# StudyHive: A Web Project Built with Python, Django, and HTML+CSS 
