@@ -1,18 +1,24 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>Login</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-  </head>
-  <body>
-    {% if messages %}
-      <ul>
-        {% for m in messages %}
-          <li>{{ m }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-    {% block content %}{% endblock %}
-  </body>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>StudyHive</title>
+  <!-- Quick dev Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-neutral-950 text-neutral-100">
+  {% if messages %}
+    <div class="max-w-xl mx-auto mt-4 space-y-2">
+      {% for m in messages %}
+        <div class="rounded-md px-4 py-2 text-sm
+          {% if m.tags == 'success' %} bg-emerald-900/40 border border-emerald-700 {% elif m.tags == 'error' %} bg-red-900/40 border border-red-700 {% else %} bg-neutral-800 border border-neutral-700 {% endif %}">
+          {{ m }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</body>
 </html>
