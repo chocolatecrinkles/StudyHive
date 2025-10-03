@@ -19,5 +19,5 @@ from django.urls import path, include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("core/", include("core.urls")),        # login and register
+    path("", include("core.urls")),        #log reg gi usa
 ]
