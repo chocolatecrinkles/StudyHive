@@ -30,7 +30,7 @@
     <div class="p-8 md:p-10 bg-neutral-950">
       <h1 class="text-3xl md:text-4xl font-black tracking-wide">CREATE YOUR ACCOUNT</h1>
 
-      <form method="post" action="{% url 'register' %}" class="mt-8 space-y-5">
+      <form method="post" action="{% url 'core:register' %}" class="mt-8 space-y-5">
         {% csrf_token %}
 
         <!-- username -->
@@ -80,7 +80,7 @@
         </button>
 
         <div class="flex items-center justify-between text-xs text-neutral-400">
-          <a class="hover:text-neutral-200" href="{% url 'login' %}">Already have an account? Sign In</a>
+          <a class="hover:text-neutral-200" href="{% url 'core:login' %}">Already have an account? Sign in</a>
         </div>
 
         <p class="text-[11px] text-neutral-500 text-center pt-4">
