@@ -1,8 +1,157 @@
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
-<div class="max-w-2xl mx-auto p-8">
-  <h1 class="text-2xl font-bold">Home</h1>
-  <p>Hi, {{ username|default:user.username }}!</p>
-  <p class="mt-4"><a class="underline" href="{% url 'logout' %}">Logout</a></p>
+<div class="dashboard">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+
+    <!-- Header -->
+    <header class="header">
+        <button class="burger-menu" onclick="toggleSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        
+        <div class="header-right">
+          <div class="brand">
+              <span class="brand-study">Study</span><span class="brand-hive">Hive</span>
+          </div>
+          <a href="#" onclick="redirectToDashboard()" class="profile-icon">
+            <img src="{% if UserProfile.avatar_url %}{{ UserProfile.avatar_url }}{% else %}{% static 'imgs/avatar_placeholder.jpg' %}{% endif %}"
+                alt="Profile" class="profile-mini">
+          </a>
+      </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sideNav">
+        <div class="sidebar-header">
+            <h2>Study Spots</h2>
+        </div>
+        
+        <div class="search-container">
+          <div class="search-box">
+              <i class="fas fa-search"></i>
+              <input type="search" placeholder="Find a study spot...">
+          </div>
+          <a href="#" onclick="redirectToDashboard()" class="view-all-btn">
+              <i class="fas fa-map-marker-alt"></i>
+              Study Spots Near CIT-U
+          </a>
+      </div>
+
+        <div class="places-list">
+    <div class="section-title">Study Spots in Cebu</div>
+
+    <!-- Rizal Library -->
+    <div class="place-card">
+        <img src="{% static 'imgs/cebu_logo.png' %}" alt="Rizal Library" class="place-img">
+        <div class="place-details">
+            <div class="place-header">
+                <h3>Rizal Memorial Library</h3>
+                <span class="distance">1.2 km</span>
+            </div>
+            <div class="place-info">
+                <div class="status open">Open Now</div>
+                <div class="operation-hours">24/7</div>
+            </div>
+            <div class="tags">
+                <span class="tag premium">Free Entry</span>
+                <span class="tag">Free WiFi</span>
+                <span class="tag">AC</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Produktiv -->
+    <div class="place-card">
+        <img src="{% static 'imgs/produktiv_logo.png' %}" alt="Produktiv" class="place-img">
+        <div class="place-details">
+            <div class="place-header">
+                <h3>Produktiv</h3>
+                <span class="distance">0.8 km</span>
+            </div>
+            <div class="place-info">
+                <div class="status open">Open Now</div>
+                <div class="price">From ₱39/hr</div>
+            </div>
+            <div class="tags">
+                <span class="tag premium">24/7</span>
+                <span class="tag">High-speed WiFi</span>
+                <span class="tag">Power Outlets</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workplace Café -->
+    <div class="place-card">
+        <img src="{% static 'imgs/workplacecafe_logo.jpg' %}" alt="Workplace Café" class="place-img">
+        <div class="place-details">
+            <div class="place-header">
+                <h3>Workplace Café</h3>
+                <span class="distance">1.5 km</span>
+            </div>
+            <div class="place-info">
+                <div class="status open">Open Now</div>
+                <div class="price">From ₱65/hr</div>
+            </div>
+            <div class="tags">
+                <span class="tag premium">24/7</span>
+                <span class="tag">Fiber WiFi</span>
+                <span class="tag">Power Outlets</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mess Hall -->
+    <div class="place-card">
+        <img src="{% static 'imgs/cebu_logo.png' %}" alt="Mess Hall" class="place-img">
+        <div class="place-details">
+            <div class="place-header">
+                <h3>Mess Hall Study and Coworking</h3>
+                <span class="distance">2.0 km</span>
+            </div>
+            <div class="place-info">
+                <div class="status open">Open Now</div>
+                <div class="price">From ₱50/hr</div>
+            </div>
+            <div class="tags">
+                <span class="tag premium">24/7</span>
+                <span class="tag">Fiber WiFi</span>
+                <span class="tag">Lockers</span>
+            </div>
+        </div>
+    </div>
 </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <img src="{% static 'imgs/map_placeholder.jpg' %}" alt="Map" class="map">
+
+        <!-- Profile Widget -->
+        <div class="profile-widget">
+            <div class="profile-content">
+                <div class="profile-left">
+                <img src="{% if UserProfile.avatar_url %}{{ UserProfile.avatar_url }}{% else %}{% static 'imgs/avatar_placeholder.jpg' %}{% endif %}"
+                    alt="Profile" class="profile-avatar">
+                </div>
+
+                <div class="profile-right">
+                  <h3>{{ user.username|default:"Guest" }}</h3>
+                  <a href="#" onclick="redirectToDashboard()" class="manage-link">Manage your Profile</a>
+              </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="{% static 'js/dashboard.js' %}"></script>
+
+<script>
+function redirectToDashboard() {
+  alert("This page is not available yet. Returning to dashboard.");
+  window.location.href = "{% url 'core:home' %}";
+}
+</script>
 {% endblock %}

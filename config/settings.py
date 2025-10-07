@@ -11,16 +11,11 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
 import os
-
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Load environment variables from .env
-ENV_FILE = BASE_DIR / ".env"
-load_dotenv(ENV_FILE)
+load_dotenv(BASE_DIR / ".env")
 
 # Security / Debug settings
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-insecure-key")
@@ -60,7 +55,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
