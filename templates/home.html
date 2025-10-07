@@ -16,10 +16,10 @@
           <div class="brand">
               <span class="brand-study">Study</span><span class="brand-hive">Hive</span>
           </div>
-          <a href="#" onclick="redirectToDashboard()" class="profile-icon">
-            <img src="{% if UserProfile.avatar_url %}{{ UserProfile.avatar_url }}{% else %}{% static 'imgs/avatar_placeholder.jpg' %}{% endif %}"
-                alt="Profile" class="profile-mini">
-          </a>
+          <a href="{% url 'core:profile' %}" class="profile-icon">
+        <img src="{% if UserProfile.avatar_url %}{{ UserProfile.avatar_url }}{% else %}{% static 'imgs/avatar_placeholder.jpg' %}{% endif %}"
+            alt="Profile" class="profile-mini">
+      </a>
       </div>
     </header>
 
@@ -148,10 +148,4 @@
 
 <script src="{% static 'js/home.js' %}"></script>
 
-<script>
-function redirectToDashboard() {
-  alert("This page is not available yet. Returning to dashboard.");
-  window.location.href = "{% url 'core:home' %}";
-}
-</script>
 {% endblock %}

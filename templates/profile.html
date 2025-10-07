@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+
+<div class="profile-page">
+
+  <!-- Back button -->
+  <a href="{% url 'core:home' %}" class="back-button" aria-label="Back to Home">
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span>Back</span>
+  </a>
+
+  <!-- Hero -->
+  <div class="profile-hero">
+    <h1 class="page-title">Profile</h1>
+    <p class="page-subtitle">View all your profile details here.</p>
+  </div>
+
+  <div class="profile-grid">
+    <!-- Left Column -->
+    <div class="profile-card">
+      <div class="profile-avatar-container">
+        <div class="profile-avatar">
+          <img src="{% if UserProfile.avatar_url %}{{ UserProfile.avatar_url }}{% else %}{% static 'imgs/avatar_placeholder.jpg' %}{% endif %}">
+        </div>
+      </div>
+      
+      <h2 class="profile-name">
+        {% if user.first_name and user.last_name %}
+          {{ user.first_name }} {% if profile.middle_initial %}{{ profile.middle_initial }}.{% endif %} {{ user.last_name }}
+        {% else %}
+          {{ user.username }}
+        {% endif %}
+      </h2>
+      <p class="profile-username">@{{ user.username }}</p>
+    </div>
+
+    <!-- Right Column -->
+    <div class="profile-details-card">
+      <div class="details-header">
+        <h3>Bio & other details</h3>
+      </div>
+
+      <div class="details-grid">
+        <div class="detail-item">
+          <label><i class="fas fa-user"></i> Full Name</label>
+          <div class="detail-value">
+            {% if user.first_name or user.last_name %}
+              {{ user.first_name }} {% if profile.middle_initial %}{{ profile.middle_initial }}.{% endif %} {{ user.last_name }}
+            {% else %}
+              <span class="text-muted">Not provided</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <label><i class="fas fa-at"></i> Username</label>
+          <div class="detail-value">@{{ user.username }}</div>
+        </div>
+
+        <div class="detail-item">
+          <label><i class="fas fa-envelope"></i> Email Address</label>
+          <div class="detail-value">{{ user.email }}</div>
+        </div>
+
+        <div class="detail-item">
+          <label><i class="fas fa-phone"></i> Contact Number</label>
+          <div class="detail-value">
+            {% if profile.phone_number %} {{ profile.phone_number }} {% else %}
+              <span class="text-muted">Not provided</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="detail-item full-width">
+          <label><i class="fas fa-info-circle"></i> Bio</label>
+          <div class="detail-value bio-value">
+            {% if profile.bio %} {{ profile.bio }} {% else %}
+              <span class="text-muted">No bio added yet</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <label><i class="fas fa-calendar"></i> Member Since</label>
+          <div class="detail-value">{{ user.date_joined|date:"F j, Y" }}</div>
+        </div>
+
+        <div class="detail-item">
+          <label><i class="fas fa-check-circle"></i> Account Status</label>
+          <div class="detail-value">
+            <span class="status-badge active"><i class="fas fa-circle"></i> Active</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="logout-container">
+  <button class="btn-logout" onclick="openLogoutModal()">
+    <i class="fas fa-sign-out-alt"></i> Logout
+  </button>
+</div>
+
+<!-- ✅ Custom Logout Popup Modal -->
+<div id="logoutModal" class="modal" data-logout-url="{% url 'core:logout' %}">
+  <div class="modal-content">
+    <h2>Confirm Logout</h2>
+    <p>Are you sure you want to log out?</p>
+    <div class="modal-buttons">
+      <button class="cancel-btn" onclick="closeLogoutModal()">Cancel</button>
+      <button class="confirm-btn" id="confirmLogout">Yes, Logout</button>
+    </div>
+  </div>
+</div>
+
+
+<script src="{% static 'js/profile.js' %}"></script>
+
+
+{% endblock %}
