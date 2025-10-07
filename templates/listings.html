@@ -1,0 +1,214 @@
+{% extends "base.html" %} 
+{% load static %} 
+{% block content %} 
+ 
+<link rel="stylesheet" href="{% static 'css/listings.css' %}"> 
+
+<div class="listings-page">
+  <!-- Animated Background -->
+  <div class="bg-decoration">
+    <div class="circle circle-1"></div>
+    <div class="circle circle-2"></div>
+    <div class="circle circle-3"></div>
+  </div>
+
+  <!-- Enhanced Header Section -->
+  <div class="hero-section">
+    <a href="{% url 'core:home' %}" class="back-button">
+      <i class="fas fa-arrow-left"></i>
+      <span>Back to Map</span>
+    </a>
+    
+    <div class="hero-content">
+      <div class="badge">
+        <i class="fas fa-map-marked-alt"></i>
+        Cebu Study Spots
+      </div>
+      <h1 class="hero-title">
+        Discover Your Perfect
+        <span class="gradient-text">Study Space</span>
+      </h1>
+      <p class="hero-subtitle">
+        Explore the best cafés, coworking spots, and libraries near CIT-U
+      </p>
+      
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-number">{{ study_spaces|length|default:"0" }}</div>
+          <div class="stat-label">Study Spots</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">24/7</div>
+          <div class="stat-label">Available</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">Free</div>
+          <div class="stat-label">WiFi Options</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Enhanced Filters & Search -->
+  <div class="control-panel">
+    <div class="search-container">
+      <div class="search-box-enhanced">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="searchInput" placeholder="Search by name, location, or amenities...">
+        <button class="clear-search" id="clearSearch" style="display: none;">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-controls">
+      <div class="filter-group">
+        <label><i class="fas fa-sort"></i> Sort By</label>
+        <select id="sortOptions" class="select-enhanced">
+          <option value="nearest">📍 Nearest First</option>
+          <option value="rating">⭐ Highest Rated</option>
+          <option value="price">💰 Best Price</option>
+          <option value="name">🔤 Alphabetical</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label><i class="fas fa-filter"></i> Filters</label>
+        <div class="filter-chips">
+          <button class="chip" data-filter="all">All</button>
+          <button class="chip" data-filter="wifi"><i class="fas fa-wifi"></i> WiFi</button>
+          <button class="chip" data-filter="free"><i class="fas fa-coins"></i> Free</button>
+          <button class="chip" data-filter="ac"><i class="fas fa-wind"></i> AC</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Enhanced Listings Grid -->
+  <div class="listings-container">
+    <div class="section-header">
+      <h2 class="section-title">Available Study Spaces</h2>
+      <div class="view-toggle">
+        <button class="toggle-btn active" data-view="grid">
+          <i class="fas fa-th"></i>
+        </button>
+        <button class="toggle-btn" data-view="list">
+          <i class="fas fa-list"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="listings-grid" id="listingsGrid">
+      {% if study_spaces %}
+        {% for space in study_spaces %}
+        <div class="listing-card" data-space-id="{{ space.id }}" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:100 }}">
+          <div class="card-image-container">
+            {% if space.image %}
+              <img src="{{ space.image.url }}" alt="{{ space.name }}" class="card-image">
+            {% else %}
+              <img src="{% static 'imgs/cebu_logo.png' %}" alt="{{ space.name }}" class="card-image">
+            {% endif %}
+            <div class="image-overlay">
+              <button class="quick-view-btn" onclick="viewDetails({{ space.id }})">
+                <i class="fas fa-eye"></i> Quick View
+              </button>
+            </div>
+            {% if space.is_free %}
+            <div class="featured-badge">
+              <i class="fas fa-star"></i> Free
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="card-content">
+            <div class="card-header">
+              <h3 class="card-title">{{ space.name }}</h3>
+              <div class="card-rating">
+                <i class="fas fa-star"></i>
+                <span>4.5</span>
+              </div>
+            </div>
+
+            <p class="card-description">{{ space.description|truncatewords:15 }}</p>
+
+            <div class="card-amenities">
+              <span class="amenity-item">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ space.address|truncatewords:3 }}
+              </span>
+              {% if space.wifi_available %}
+              <span class="amenity-item">
+                <i class="fas fa-wifi"></i> WiFi
+              </span>
+              {% endif %}
+              {% if space.has_outlets %}
+              <span class="amenity-item">
+                <i class="fas fa-plug"></i> Outlets
+              </span>
+              {% endif %}
+            </div>
+
+            <div class="card-tags">
+              {% if space.is_free %}
+              <span class="tag tag-free">
+                <i class="fas fa-coins"></i> Free Entry
+              </span>
+              {% endif %}
+              {% if space.wifi_available %}
+              <span class="tag tag-wifi">
+                <i class="fas fa-wifi"></i> WiFi
+              </span>
+              {% endif %}
+              {% if space.air_conditioned %}
+              <span class="tag tag-ac">
+                <i class="fas fa-wind"></i> AC
+              </span>
+              {% endif %}
+            </div>
+
+            <div class="card-footer">
+              <button class="btn btn-primary" onclick="viewDetails({{ space.id }})">
+                <i class="fas fa-info-circle"></i>
+                <span>View Details</span>
+              </button>
+              <div class="card-actions">
+                <button class="btn-icon btn-edit" onclick="editListing({{ space.id }})" title="Edit">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-icon btn-delete" onclick="deleteListing({{ space.id }})" title="Delete">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h3>No Study Spaces Found</h3>
+          <p>Try adjusting your search or filters to find what you're looking for</p>
+          <button class="btn btn-primary" onclick="window.location.reload()">
+            <i class="fas fa-redo"></i> Reset Filters
+          </button>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Add New Listing FAB -->
+  <button class="fab" onclick="createListing()" title="Add New Study Space">
+    <i class="fas fa-plus"></i>
+  </button>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay" style="display: none;">
+  <div class="spinner"></div>
+  <p>Loading...</p>
+</div>
+
+<script src="{% static 'js/listings.js' %}"></script>
+{% endblock %}

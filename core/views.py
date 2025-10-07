@@ -5,6 +5,8 @@ from django.contrib.auth import login, logout
 from core.forms import CustomUserCreationForm, CustomAuthenticationForm
 from .models import UserProfile  
 from django.http import JsonResponse
+from core.models import StudySpot
+
 
 
 def login_view(request):
@@ -100,3 +102,11 @@ def manage_profile(request):
         return redirect("core:profile")
 
     return render(request, "manage_profile.html", {"profile": profile})
+
+
+def listings_view(request):
+    study_spaces = StudySpot.objects.all()
+    return render(request, "listings.html", {"study_spaces": study_spaces})
+
+
+
