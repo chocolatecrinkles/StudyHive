@@ -48,3 +48,8 @@ def register_view(request):
     else:
         form = CustomUserCreationForm()
     return render(request, "register.html", {"form": form})
+
+@login_required(login_url='core:login')
+def profile_view(request):
+    return render(request, 'profile.html')
+
