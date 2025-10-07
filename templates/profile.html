@@ -25,7 +25,11 @@
     <div class="profile-card">
       <div class="profile-avatar-container">
         <div class="profile-avatar">
-          <img src="{% if UserProfile.avatar_url %}{{ UserProfile.avatar_url }}{% else %}{% static 'imgs/avatar_placeholder.jpg' %}{% endif %}">
+          {% if user.userprofile.avatar_url %}
+            <img src="{{ user.userprofile.avatar_url.url }}" alt="Profile Picture">
+          {% else %}
+            <img src="{% static 'imgs/avatar_placeholder.jpg' %}" alt="Default Profile Picture">
+          {% endif %}
         </div>
       </div>
       
@@ -37,6 +41,10 @@
         {% endif %}
       </h2>
       <p class="profile-username">@{{ user.username }}</p>
+
+      <a href="{% url 'core:manage_profile' %}" class="btn-manage">
+        <i class="fas fa-edit"></i> Manage Profile
+      </a>
     </div>
 
     <!-- Right Column -->

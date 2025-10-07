@@ -17,8 +17,11 @@
               <span class="brand-study">Study</span><span class="brand-hive">Hive</span>
           </div>
           <a href="{% url 'core:profile' %}" class="profile-icon">
-        <img src="{% if UserProfile.avatar_url %}{{ UserProfile.avatar_url }}{% else %}{% static 'imgs/avatar_placeholder.jpg' %}{% endif %}"
-            alt="Profile" class="profile-mini">
+        {% if user.userprofile.avatar_url %}
+          <img src="{{ user.userprofile.avatar_url.url }}" alt="Profile Picture">
+        {% else %}
+          <img src="{% static 'imgs/avatar_placeholder.jpg' %}" alt="Default Profile Picture">
+        {% endif %}
       </a>
       </div>
     </header>
@@ -129,22 +132,25 @@
     <main class="main-content">
         <img src="{% static 'imgs/map_placeholder.jpg' %}" alt="Map" class="map">
 
-        <!-- Profile Widget -->
         <div class="profile-widget">
-            <div class="profile-content">
-                <div class="profile-left">
-                <img src="{% if UserProfile.avatar_url %}{{ UserProfile.avatar_url }}{% else %}{% static 'imgs/avatar_placeholder.jpg' %}{% endif %}"
-                    alt="Profile" class="profile-avatar">
-                </div>
+        <div class="profile-content">
+          <div class="profile-left">
+            {% if user.userprofile.avatar_url %}
+              <img src="{{ user.userprofile.avatar_url.url }}" alt="Profile" class="profile-avatar">
+            {% else %}
+              <img src="{% static 'imgs/avatar_placeholder.jpg' %}" alt="Profile" class="profile-avatar">
+            {% endif %}
+          </div>
 
-                <div class="profile-right">
-                  <h3>{{ user.username|default:"Guest" }}</h3>
-                  <a href="#" onclick="redirectToDashboard()" class="manage-link">Manage your Profile</a>
-              </div>
-            </div>
+          <div class="profile-right">
+            <h3>{{ user.username|default:"Guest" }}</h3>
+            <a href="#" onclick="redirectToDashboard()" class="manage-link">Manage your Profile</a>
+          </div>
         </div>
-    </main>
-</div>
+      </div>
+      </main>
+      </div>
+
 
 <script src="{% static 'js/home.js' %}"></script>
 
