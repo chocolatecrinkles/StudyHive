@@ -44,7 +44,9 @@ Version Control: Git & GitHub
 
 # Team Members
 Leanda, John Luis C. - Lead Developer (johnluis.leanda@cit.edu)
+
 Libato, Michael Grant S. - Developer (michaelgrant.libato@cit.edu)
+
 Macansantos, Axcelson O. - Developer (axcelson.macansantos@cit.edu)
 
 # Deployed Link
