@@ -32,14 +32,7 @@ Version Control: Git & GitHub
     pip install -r requirements.txt
 
     4. Connect to Supabase
-    Create a .env file in your project root and add the Supabase database credentials:
-
-    PGHOST=aws-1-ap-southeast-1.pooler.supabase.com
-    PGPORT=6543
-    PGDATABASE=postgres
-    PGUSER=postgres.hahrgqynhtfgbhpuuexd
-    PGPASSWORD=Prtsorcle123
-    PGSSLMODE=require
+    Create a .env file in your project root and add the Supabase database credentials.
 
     5. Run migrations
     python manage.py migrate
