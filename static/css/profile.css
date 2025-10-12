@@ -1,25 +1,29 @@
-/* Profile Page Styles - Maroon & Gold Theme (Light) */
+/* Study-Hive Profile Page Styles */
 
 :root {
-  --maroon-primary: #800020;
-  --maroon-dark: #5c0016;
-  --maroon-light: #a6002a;
-  --gold-primary: #d4af37;
-  --gold-light: #f4d03f;
-  --gold-dark: #b8941e;
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-card: #ffffff;
-  --text-primary: #1a1a1a;
-  --text-secondary: #4a4a4a;
-  --text-muted: #9ca3af;
-  --border-color: #e5e7eb;
-  --border-light: #f3f4f6;
+  /* Study-Hive Color Palette */
+  --hive-green: #C8E6C9;
+  --focus-mint: #A9D6A7;
+  --spotlight-yellow: #FFF776;
+  --cookie-dough: #455A64;
+  --dark-olive: #FFFFFF;
+  
+  /* CSS Variables for easier use */
+  --bg-primary: var(--hive-green);
+  --bg-secondary: #E8F5E9;
+  --bg-card: var(--dark-olive);
+  --text-primary: var(--cookie-dough);
+  --text-secondary: #616161;
+  --text-muted: #9E9E9E;
+  --accent-active: var(--focus-mint);
+  --accent-action: var(--spotlight-yellow);
+  --border-color: #D1D1D1;
+  --border-light: #E0E0E0;
+  
+  /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
-  --shadow-gold: 0 4px 20px rgba(212, 175, 55, 0.2);
-  --shadow-maroon: 0 4px 20px rgba(128, 0, 32, 0.15);
 }
 
 * {
@@ -29,9 +33,9 @@
 }
 
 body {
-  background-color: white !important;
+  background-color: var(--hive-green) !important;
   color: var(--text-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Nunito Sans', sans-serif;
   line-height: 1.6;
 }
 
@@ -60,18 +64,18 @@ body {
 }
 
 .page-title {
+  font-family: 'Poppins', sans-serif;
   font-size: 3rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, var(--maroon-primary), var(--gold-primary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--cookie-dough);
 }
 
 .page-subtitle {
   color: var(--text-secondary);
+  font-family: 'Nunito Sans', sans-serif;
   font-size: 1.1rem;
+  font-weight: 400;
 }
 
 /* Profile Grid */
@@ -91,7 +95,7 @@ body {
 /* Profile Card */
 .profile-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 2px solid var(--focus-mint);
   border-radius: 20px;
   padding: 3rem 2rem;
   text-align: center;
@@ -103,7 +107,8 @@ body {
 
 .profile-card:hover {
   transform: translateY(-5px);
-  box-shadow: var(--shadow-maroon);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent-action);
 }
 
 .profile-avatar-container {
@@ -117,14 +122,14 @@ body {
   margin: 0 auto;
   border-radius: 50%;
   padding: 8px;
-  background: linear-gradient(135deg, var(--maroon-primary), var(--gold-primary));
+  background: linear-gradient(135deg, var(--focus-mint), var(--accent-action));
   box-shadow: var(--shadow-lg);
   transition: all 0.4s ease;
 }
 
 .profile-avatar:hover {
   transform: scale(1.05);
-  box-shadow: var(--shadow-gold);
+  box-shadow: 0 10px 30px rgba(169, 214, 167, 0.3);
 }
 
 .profile-avatar img {
@@ -136,29 +141,19 @@ body {
 }
 
 .profile-name {
+  font-family: 'Poppins', sans-serif;
   font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
-  color: var(--text-primary);
+  color: var(--cookie-dough);
 }
 
 .profile-username {
   color: var(--text-secondary);
+  font-family: 'Nunito Sans', sans-serif;
   font-size: 1rem;
+  font-weight: 400;
   margin-bottom: 1rem;
-}
-
-.profile-tier {
-  display: inline-block;
-  padding: 0.5rem 1.5rem;
-  background: linear-gradient(135deg, var(--maroon-primary), var(--maroon-light));
-  color: var(--gold-primary);
-  border-radius: 50px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 1.5rem;
 }
 
 /* Manage Profile Button */
@@ -169,12 +164,13 @@ body {
   gap: 0.75rem;
   width: 100%;
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, var(--maroon-primary), var(--maroon-light));
-  color: var(--gold-primary);
+  background: var(--spotlight-yellow);
+  color: var(--cookie-dough);
   border: none;
   border-radius: 12px;
+  font-family: 'Nunito Sans', sans-serif;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   text-decoration: none;
@@ -183,8 +179,8 @@ body {
 
 .btn-manage:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-maroon);
-  background: linear-gradient(135deg, var(--maroon-dark), var(--maroon-primary));
+  box-shadow: var(--shadow-md);
+  background: #FFF59D;
 }
 
 .btn-manage i {
@@ -194,7 +190,7 @@ body {
 /* Profile Details Card */
 .profile-details-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 2px solid var(--focus-mint);
   border-radius: 20px;
   padding: 2.5rem;
   box-shadow: var(--shadow-md);
@@ -207,13 +203,14 @@ body {
   align-items: center;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid var(--border-light);
+  border-bottom: 2px solid var(--hive-green);
 }
 
 .details-header h3 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--maroon-primary);
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--cookie-dough);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -265,8 +262,9 @@ body {
 }
 
 .detail-item label {
+  font-family: 'Nunito Sans', sans-serif;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -276,17 +274,19 @@ body {
 }
 
 .detail-item label i {
-  color: var(--gold-primary);
+  color: var(--accent-action);
   font-size: 1rem;
 }
 
 .detail-value {
   padding: 1rem 1.25rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background: var(--hive-green);
+  border: 2px solid var(--focus-mint);
   border-radius: 12px;
   color: var(--text-primary);
+  font-family: 'Nunito Sans', sans-serif;
   font-size: 1rem;
+  font-weight: 400;
   transition: all 0.3s ease;
   min-height: 50px;
   display: flex;
@@ -294,8 +294,8 @@ body {
 }
 
 .detail-value:hover {
-  border-color: var(--gold-primary);
-  background: var(--bg-card);
+  border-color: var(--accent-action);
+  background: #F1F8F6;
   box-shadow: var(--shadow-sm);
 }
 
@@ -317,14 +317,15 @@ body {
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   border-radius: 50px;
+  font-family: 'Nunito Sans', sans-serif;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .status-badge.active {
-  background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  background: rgba(169, 214, 167, 0.2);
+  color: #2E7D32;
+  border: 1px solid var(--focus-mint);
 }
 
 .status-badge i {
@@ -366,39 +367,145 @@ body {
   }
 }
 
-/* Hover Effects */
-.detail-item:hover .detail-value {
-  transform: translateX(5px);
+/* Back Button */
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--cookie-dough);
+  background: var(--spotlight-yellow);
+  padding: 12px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+  border: 2px solid transparent;
 }
 
-/* Scrollbar Styling */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+.back-button svg {
+  stroke: var(--cookie-dough);
+  transition: stroke 0.3s ease;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+.back-button:hover {
+  background: var(--focus-mint);
+  color: var(--cookie-dough);
+  border-color: var(--cookie-dough);
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--maroon-primary);
-  border-radius: 5px;
+.back-button:hover svg {
+  stroke: var(--cookie-dough);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--maroon-light);
+/* Logout Button Container */
+.logout-container {
+  margin-top: 2rem;
+  text-align: center;
 }
 
-/* Selection Styling */
-::selection {
-  background: var(--maroon-primary);
-  color: var(--gold-primary);
+.btn-logout {
+  background-color: var(--focus-mint);
+  color: var(--cookie-dough);
+  border: 2px solid var(--focus-mint);
+  border-radius: 10px;
+  padding: 12px 30px;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s ease;
+  box-shadow: var(--shadow-sm);
 }
 
-::-moz-selection {
-  background: var(--maroon-primary);
-  color: var(--gold-primary);
+.btn-logout:hover {
+  background-color: var(--spotlight-yellow);
+  color: var(--cookie-dough);
+  border-color: var(--cookie-dough);
+  transform: scale(1.03);
+}
+
+/* Modal Popup */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: var(--bg-card);
+  padding: 2rem;
+  border-radius: 15px;
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+  border: 2px solid var(--focus-mint);
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-content h2 {
+  font-family: 'Poppins', sans-serif;
+  color: var(--cookie-dough);
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.modal-content p {
+  font-family: 'Nunito Sans', sans-serif;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  font-weight: 400;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-around;
+  gap: 1rem;
+}
+
+.cancel-btn,
+.confirm-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: 'Nunito Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: 0.2s;
+  border: 2px solid transparent;
+  flex: 1;
+}
+
+.cancel-btn {
+  background-color: var(--hive-green);
+  color: var(--cookie-dough);
+  border-color: var(--focus-mint);
+}
+
+.cancel-btn:hover {
+  background-color: var(--focus-mint);
+  border-color: var(--cookie-dough);
+}
+
+.confirm-btn {
+  background-color: var(--focus-mint);
+  color: var(--cookie-dough);
+  border-color: var(--focus-mint);
+}
+
+.confirm-btn:hover {
+  background-color: var(--spotlight-yellow);
+  color: var(--cookie-dough);
+  border-color: var(--cookie-dough);
 }
 
 /* Toast Notification */
@@ -407,7 +514,7 @@ body {
   bottom: -100px;
   right: 2rem;
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 2px solid var(--focus-mint);
   border-radius: 12px;
   padding: 1rem 1.5rem;
   box-shadow: var(--shadow-lg);
@@ -417,6 +524,7 @@ body {
   align-items: center;
   gap: 0.75rem;
   min-width: 280px;
+  font-family: 'Nunito Sans', sans-serif;
 }
 
 .toast-notification.show {
@@ -428,24 +536,24 @@ body {
 }
 
 .toast-notification.toast-success {
-  border-left: 4px solid #22c55e;
+  border-left: 4px solid #2E7D32;
 }
 
 .toast-notification.toast-success i {
-  color: #22c55e;
+  color: #2E7D32;
 }
 
 .toast-notification.toast-error {
-  border-left: 4px solid #ef4444;
+  border-left: 4px solid #C62828;
 }
 
 .toast-notification.toast-error i {
-  color: #ef4444;
+  color: #C62828;
 }
 
 /* Keyboard Navigation Focus */
 .keyboard-nav *:focus {
-  outline: 2px solid var(--gold-primary);
+  outline: 2px solid var(--accent-action);
   outline-offset: 2px;
 }
 
@@ -469,14 +577,16 @@ body {
 
 /* Print Styles */
 @media print {
-  .btn-manage {
+  .btn-manage,
+  .back-button,
+  .logout-container {
     display: none;
   }
   
   .profile-card,
   .profile-details-card {
     box-shadow: none;
-    border: 1px solid #000;
+    border: 1px solid var(--cookie-dough);
   }
   
   .toast-notification {
@@ -484,126 +594,32 @@ body {
   }
 }
 
-/* Back Button */
-.back-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--maroon);
-  background: var(--gold-light);
-  padding: 15px 30px;
-  border-radius: 8px;
-  text-decoration: none;
-  transition: all .3s ease;
-  margin-bottom: 20px;
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
 
-.back-button svg {
-  stroke: var(--maroon);
+::-webkit-scrollbar-track {
+  background: var(--hive-green);
 }
 
-.back-button:hover {
-  background: var(--maroon);
-  color: var(--white);
+::-webkit-scrollbar-thumb {
+  background: var(--focus-mint);
+  border-radius: 5px;
 }
 
-.back-button:hover svg {
-  stroke: var(--white);
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-action);
 }
 
-
-
-/* Logout button at bottom of page (not fixed) */
-.logout-container {
-  margin-top: 2rem;
-  text-align: center;
+/* Selection Styling */
+::selection {
+  background: var(--focus-mint);
+  color: var(--cookie-dough);
 }
 
-.btn-logout {
-  background-color: #7a1e1e;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 12px 30px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.3s ease;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.btn-logout:hover {
-  background-color: #a83232;
-  transform: scale(1.03);
-}
-
-/* Modal popup */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 2000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-content {
-  background: white;
-  padding: 2rem;
-  border-radius: 15px;
-  text-align: center;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-}
-
-.modal-content h2 {
-  color: #7a1e1e;
-  margin-bottom: 10px;
-}
-
-.modal-content p {
-  color: #333;
-  margin-bottom: 1.5rem;
-}
-
-.modal-buttons {
-  display: flex;
-  justify-content: space-around;
-}
-
-.cancel-btn,
-.confirm-btn {
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.cancel-btn {
-  background-color: #ccc;
-  border: none;
-  color: #333;
-}
-
-.cancel-btn:hover {
-  background-color: #b3b3b3;
-}
-
-.confirm-btn {
-  background-color: #7a1e1e;
-  color: white;
-  border: none;
-}
-
-.confirm-btn:hover {
-  background-color: #a83232;
+::-moz-selection {
+  background: var(--focus-mint);
+  color: var(--cookie-dough);
 }
