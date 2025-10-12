@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
+from .models import StudySpace
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(
@@ -46,4 +47,14 @@ class CustomAuthenticationForm(AuthenticationForm):
         })
     )
 
+class StudySpaceForm(forms.ModelForm):
+    class Meta:
+        model = StudySpace
+        fields = ['name', 'location', 'description', 'rating', 'wifi', 'ac', 'free', 'image']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Enter study space name'}),
+            'location': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Location (e.g. Lahug, Cebu)'}),
+            'description': forms.Textarea(attrs={'class': 'form-textarea', 'placeholder': 'Describe this place...', 'rows': 4}),
+            'rating': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.1', 'min': '0', 'max': '5'}),
+        }
 

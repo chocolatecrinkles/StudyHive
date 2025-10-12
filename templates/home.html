@@ -145,7 +145,6 @@
 
         <div class="profile-right">
           <h3>{{ user.username|default:"Guest" }}</h3>
-          <!-- ✅ changed from JS redirect to proper URL -->
           <a href="{% url 'core:manage_profile' %}" class="manage-link">Manage your Profile</a>
         </div>
       </div>

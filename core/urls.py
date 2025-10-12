@@ -12,5 +12,6 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('profile/manage/', views.manage_profile, name='manage_profile'),
     path('home/listings/', views.listings_view, name='listings'),
+    path('listings/create/', views.create_listing, name='create_listing'),
 ]
 

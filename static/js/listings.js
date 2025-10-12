@@ -29,10 +29,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const sorted = [...allCards];
     sorted.sort((a, b) => {
       switch (sortBy) {
-        case "rating": return b.dataset.rating - a.dataset.rating;
-        case "price": return a.dataset.free === "true" ? -1 : 1;
-        case "name": return a.dataset.name.localeCompare(b.dataset.name);
-        default: return 0;
+        case "rating":
+          return b.dataset.rating - a.dataset.rating;
+        case "price":
+          return a.dataset.free === "true" ? -1 : 1;
+        case "name":
+          return a.dataset.name.localeCompare(b.dataset.name);
+        default:
+          return 0;
       }
     });
     listingsGrid.innerHTML = "";
@@ -62,10 +66,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // LOADING OVERLAY
+  // LOADING ANIMATION
   const overlay = document.createElement("div");
   overlay.className = "loading-overlay";
-  overlay.innerHTML = `<div class="spinner"></div><p>Loading Study Spots...</p>`;
+  overlay.innerHTML = `<div class="spinner"></div><p>Loading Study Spaces...</p>`;
   document.body.appendChild(overlay);
   setTimeout(() => {
     overlay.style.opacity = "0";
@@ -73,19 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }, 800);
 });
 
-// QUICK VIEW / EDIT / DELETE
+// QUICK ACTIONS
 function viewDetails(id) {
   alert("Viewing details for Listing ID: " + id);
-}
-
-function editListing(id) {
-  alert("Editing Listing ID: " + id);
-}
-
-function deleteListing(id) {
-  if (confirm("Are you sure you want to delete this listing?")) {
-    const card = document.querySelector(`.listing-card:nth-child(${id})`);
-    if (card) card.remove();
-    alert("Listing deleted.");
-  }
 }

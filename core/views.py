@@ -5,8 +5,8 @@ from django.contrib.auth import login, logout
 from core.forms import CustomUserCreationForm, CustomAuthenticationForm
 from .models import UserProfile  
 from django.http import JsonResponse
-from core.models import StudySpot
-
+from .models import StudySpace
+from .forms import StudySpaceForm
 
 
 def login_view(request):
@@ -105,8 +105,23 @@ def manage_profile(request):
 
 
 def listings_view(request):
-    study_spaces = StudySpot.objects.all()
-    return render(request, "listings.html", {"study_spaces": study_spaces})
+    query = request.GET.get('q', '')
+    spaces = StudySpace.objects.all()
+    if query:
+        spaces = spaces.filter(name__icontains=query)
+    return render(request, 'listings.html', {'spaces': spaces})
 
 
 
+def create_listing(request):
+    if request.method == 'POST':
+        form = StudySpaceForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Study Space created successfully!")
+            return redirect('core:listings')
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = StudySpaceForm()
+    return render(request, 'core/create_listing.html', {'form': form})

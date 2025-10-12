@@ -12,15 +12,15 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.username
 
-class StudySpot(models.Model):
+class StudySpace(models.Model):
     name = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
-    address = models.CharField(max_length=255)
-    wifi_available = models.BooleanField(default=False)
-    has_outlets = models.BooleanField(default=False)
-    is_free = models.BooleanField(default=True)
-    air_conditioned = models.BooleanField(default=False)
-    image = models.ImageField(upload_to='study_spaces/', blank=True, null=True)
+    description = models.TextField()
+    location = models.CharField(max_length=150)
+    rating = models.FloatField(default=0)
+    wifi = models.BooleanField(default=False)
+    free = models.BooleanField(default=False)
+    ac = models.BooleanField(default=False)
+    image = models.ImageField(upload_to='studyspaces/', blank=True, null=True)
 
     def __str__(self):
         return self.name
