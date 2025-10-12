@@ -1,163 +1,144 @@
-// ------- AVATAR: choose/reset/drag-drop -------
-const avatarInput   = document.getElementById('avatar-upload');
-const avatarPreview = document.getElementById('avatarPreview');
-const avatarDrop    = document.getElementById('avatarDrop');
-const avatarReset   = document.getElementById('avatarReset');
-const originalSrc   = avatarPreview ? avatarPreview.getAttribute('src') : null;
+document.addEventListener("DOMContentLoaded", () => {
+  const avatarInput = document.getElementById("avatar-upload");
+  const avatarPreview = document.getElementById("avatarPreview");
+  const avatarReset = document.getElementById("avatarReset");
+  const avatarRemove = document.getElementById("avatarRemove");
+  const form = document.querySelector(".settings-form");
+  const modal = document.getElementById("updateModal");
+  const confirmBtn = document.getElementById("confirmUpdate");
+  const cancelBtn = document.getElementById("cancelUpdate");
+  const saveBtn = document.getElementById("saveBtn");
+  const csrf = document.querySelector("[name=csrfmiddlewaretoken]").value;
+  const originalSrc = avatarPreview ? avatarPreview.src : null;
 
-function setPreview(file) {
-  if (!file) return;
-  const okType = /^image\/(png|jpe?g)$/i.test(file.type);
-  const okSize = file.size <= 5 * 1024 * 1024;
-  if (!okType || !okSize) {
-    toast('Please upload a JPG or PNG up to 5MB.', 'error');
-    if (avatarInput) avatarInput.value = '';
-    return;
-  }
-  avatarPreview.src = URL.createObjectURL(file);
-}
-
-avatarInput?.addEventListener('change', e => setPreview(e.target.files?.[0]));
-
-['dragenter', 'dragover'].forEach(evt =>
-  avatarDrop?.addEventListener(evt, e => {
-    e.preventDefault(); e.stopPropagation();
-    avatarDrop.classList.add('dragging');
-  })
-);
-
-['dragleave', 'drop'].forEach(evt =>
-  avatarDrop?.addEventListener(evt, e => {
-    e.preventDefault(); e.stopPropagation();
-    avatarDrop.classList.remove('dragging');
-  })
-);
-
-avatarDrop?.addEventListener('drop', e => {
-  const file = e.dataTransfer.files?.[0];
-  if (file) {
-    setPreview(file);
-    const dt = new DataTransfer();
-    dt.items.add(file);
-    avatarInput.files = dt.files;
-  }
-});
-
-avatarDrop?.addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === ' ') {
-    e.preventDefault();
-    avatarInput?.click();
-  }
-});
-
-avatarReset?.addEventListener('click', () => {
-  if (avatarInput) avatarInput.value = '';
-  if (originalSrc && avatarPreview) avatarPreview.src = originalSrc;
-});
-
-// ------- BIO: live remaining counter -------
-const bio = document.getElementById('bio');
-const remaining = document.getElementById('charRemaining');
-function updateRemaining() {
-  if (!bio || !remaining) return;
-  const max = parseInt(bio.getAttribute('maxlength') || '500', 10);
-  const left = Math.max(0, max - bio.value.length);
-  remaining.textContent = left;
-  remaining.parentElement.classList.toggle('over', left === 0);
-}
-bio?.addEventListener('input', updateRemaining);
-updateRemaining();
-
-// ------- SAVE: confirm modal + AJAX -------
-(function() {
-  const form = document.querySelector('.settings-form');
-  const saveBtn = document.getElementById('saveBtn');
-  const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-  if (!form) return;
-
-  // Create confirmation modal dynamically
-  const modal = document.createElement('div');
-  modal.className = 'confirm-modal';
-  modal.innerHTML = `
-    <div class="modal-content">
-      <h3>Confirm Update</h3>
-      <p>Are you sure you want to update your profile?</p>
-      <div class="modal-actions">
-        <button type="button" class="btn-cancel">Cancel</button>
-        <button type="button" class="btn-confirm">Yes, Update</button>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-
-  const cancelBtn = modal.querySelector('.btn-cancel');
-  const confirmBtn = modal.querySelector('.btn-confirm');
-
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    modal.classList.add('active');
-  });
-
-  cancelBtn.addEventListener('click', () => modal.classList.remove('active'));
-
-  confirmBtn.addEventListener('click', async () => {
-    modal.classList.remove('active');
-    saveBtn.disabled = true;
-    saveBtn.textContent = 'Updating...';
-
-    try {
-      const body = new FormData(form);
-      const res = await fetch(form.getAttribute('action') || window.location.href, {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': csrf,
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json'
-        },
-        body
-      });
-
-      const data = await res.json();
-      if (data.status === 'ok') {
-        showSuccessPopup('✅ Successfully updated!');
-        setTimeout(() => {
-          window.location.href = '/profile/'; // redirect to profile page
-        }, 1800);
-      } else {
-        toast('⚠️ Update failed.', 'error');
-      }
-
-    } catch (err) {
-      console.error(err);
-      toast('❌ Something went wrong while saving.', 'error');
-    } finally {
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Save Changes';
+  // Image Preview
+  avatarInput?.addEventListener("change", (e) => {
+    const file = e.target.files?.[0];
+    if (
+      file &&
+      /^image\/(png|jpe?g)$/i.test(file.type) &&
+      file.size <= 5 * 1024 * 1024
+    ) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        avatarPreview.src = ev.target.result;
+        avatarPreview.dataset.modified = "true";
+        toast("Image preview loaded", "success");
+      };
+      reader.readAsDataURL(file);
+    } else {
+      toast("Please upload JPG or PNG up to 5MB.", "error");
+      avatarInput.value = "";
     }
   });
-})();
 
-// ------- Toast helper -------
-function toast(message, type='info') {
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.textContent = message;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.classList.add('show'), 50);
-  setTimeout(() => toast.classList.remove('show'), 3000);
-  setTimeout(() => toast.remove(), 3500);
-}
+  // Reset to previous photo
+  avatarReset?.addEventListener("click", (e) => {
+    e.preventDefault();
+    avatarPreview.src = originalSrc;
+    delete avatarPreview.dataset.modified;
+    delete avatarPreview.dataset.removed;
+    avatarInput.value = "";
+    toast("Photo reset to original", "success");
+  });
 
-// ------- Success popup helper -------
-function showSuccessPopup(message) {
-  const popup = document.createElement('div');
-  popup.className = 'success-popup';
-  popup.innerHTML = `
-    <div class="popup-content">
-      <h3>${message}</h3>
-    </div>`;
-  document.body.appendChild(popup);
-  setTimeout(() => popup.classList.add('show'), 50);
-  setTimeout(() => popup.classList.remove('show'), 1500);
-  setTimeout(() => popup.remove(), 2000);
-}
+  // Remove photo
+  avatarRemove?.addEventListener("click", (e) => {
+    e.preventDefault();
+    const placeholder =
+      avatarPreview.dataset.placeholder || "/static/imgs/avatar_placeholder.jpg";
+    avatarPreview.src = placeholder;
+    avatarPreview.dataset.removed = "true";
+    delete avatarPreview.dataset.modified;
+    avatarInput.value = "";
+    toast("Photo removed (will update on save)", "success");
+  });
+
+  // Show confirmation modal
+  form?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    modal.classList.add("active");
+  });
+
+  // Cancel modal
+  cancelBtn?.addEventListener("click", () => modal.classList.remove("active"));
+
+  // Confirm update
+  confirmBtn?.addEventListener("click", async () => {
+    modal.classList.remove("active");
+    saveBtn.disabled = true;
+    saveBtn.classList.add("loading");
+    saveBtn.textContent = "Updating...";
+
+    try {
+      const formData = new FormData(form);
+      if (avatarPreview.dataset.removed === "true") {
+        formData.append("avatar_removed", "true");
+      }
+
+      const res = await fetch(form.action || window.location.href, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": csrf,
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: formData,
+      });
+
+      // Try to parse JSON if available, otherwise fallback to redirect
+      let data = {};
+      try {
+        data = await res.json();
+      } catch {
+        // ignore JSON error
+      }
+
+      if (res.ok) {
+        showSuccessPopup("✅ Profile Updated Successfully!");
+        setTimeout(() => (window.location.href = "/profile/"), 1500);
+      } else {
+        const msg =
+          data.message || "⚠️ Update failed. Please try again.";
+        toast(msg, "error");
+      }
+    } catch (err) {
+      console.error("Update error:", err);
+      toast("❌ Something went wrong. Please try again.", "error");
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.classList.remove("loading");
+      saveBtn.textContent = "Save Changes";
+    }
+  });
+
+  // Toast helper
+  function toast(msg, type = "info") {
+    const el = document.createElement("div");
+    el.className = `toast ${type}`;
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.classList.add("show"), 10);
+    setTimeout(() => {
+      el.classList.remove("show");
+      setTimeout(() => el.remove(), 300);
+    }, 3000);
+  }
+
+  // Success popup
+  function showSuccessPopup(msg) {
+    const popup = document.createElement("div");
+    popup.className = "success-popup";
+    popup.innerHTML = `<div class="popup-content">${msg}</div>`;
+    document.body.appendChild(popup);
+    setTimeout(() => popup.classList.add("show"), 50);
+    setTimeout(() => {
+      popup.classList.remove("show");
+      setTimeout(() => popup.remove(), 300);
+    }, 1500);
+  }
+
+  // Close modal when clicking outside
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) modal.classList.remove("active");
+  });
+});

@@ -4,15 +4,24 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>StudyHive</title>
-  <!-- Quick dev Tailwind -->
+
+  {% load static %}
+
+  <!-- Base CSS (Tailwind + global styles) -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Block for page-specific CSS -->
+  {% block styles %}{% endblock %}
 </head>
+
 <body class="min-h-screen bg-neutral-950 text-neutral-100">
   {% if messages %}
     <div class="max-w-xl mx-auto mt-4 space-y-2">
       {% for m in messages %}
         <div class="rounded-md px-4 py-2 text-sm
-          {% if m.tags == 'success' %} bg-emerald-900/40 border border-emerald-700 {% elif m.tags == 'error' %} bg-red-900/40 border border-red-700 {% else %} bg-neutral-800 border border-neutral-700 {% endif %}">
+          {% if m.tags == 'success' %} bg-emerald-900/40 border border-emerald-700 
+          {% elif m.tags == 'error' %} bg-red-900/40 border border-red-700 
+          {% else %} bg-neutral-800 border border-neutral-700 {% endif %}">
           {{ m }}
         </div>
       {% endfor %}
