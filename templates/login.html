@@ -1,79 +1,83 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="max-w-6xl mx-auto py-10 px-4">
-  <div class="bg-neutral-900/60 border border-neutral-800 rounded-2xl overflow-hidden grid md:grid-cols-2">
+<div class="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 flex items-center justify-center p-8">
+  <div class="w-full max-w-6xl grid md:grid-cols-2 bg-white border-2 border-emerald-200 rounded-2xl shadow-md overflow-hidden">
 
-
-
-    <!-- Left: view image hh -->
-    <div class="p-8 md:p-10 bg-neutral-900/80">
-      <div class="w-24 h-24 rounded-xl bg-neutral-800 mx-auto md:mx-0"></div>
-      <p class="mt-6 text-neutral-300">
+    <!-- Left: Info Section -->
+    <div class="p-10 bg-gradient-to-br from-emerald-100 to-emerald-50 flex flex-col justify-center">
+      <div class="w-20 h-20 rounded-xl bg-emerald-200 mx-auto md:mx-0"></div>
+      <p class="mt-6 text-slate-600 font-[Nunito_Sans]">
         Your trusted learning platform for collaborative study and academic success
       </p>
 
       <div class="mt-8 space-y-4">
-        <div class="rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-3">
-          <div class="font-semibold">Study Groups</div>
-          <div class="text-sm text-neutral-400">Collaborative learning spaces</div>
+        <div class="rounded-xl border-2 border-emerald-200 bg-white px-4 py-3 shadow-sm hover:shadow-md transition-all">
+          <div class="font-semibold text-slate-700">Study Groups</div>
+          <div class="text-sm text-slate-500">Collaborative learning spaces</div>
         </div>
-        <div class="rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-3">
-          <div class="font-semibold">Hive Tracking</div>
-          <div class="text-sm text-neutral-400">Monitor places to chill & study</div>
+        <div class="rounded-xl border-2 border-emerald-200 bg-white px-4 py-3 shadow-sm hover:shadow-md transition-all">
+          <div class="font-semibold text-slate-700">Hive Tracking</div>
+          <div class="text-sm text-slate-500">Monitor places to chill & study</div>
         </div>
-        <div class="rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-3">
-          <div class="font-semibold">Smart Tools</div>
-          <div class="text-sm text-neutral-400">AI-powered study navigator</div>
+        <div class="rounded-xl border-2 border-emerald-200 bg-white px-4 py-3 shadow-sm hover:shadow-md transition-all">
+          <div class="font-semibold text-slate-700">Smart Tools</div>
+          <div class="text-sm text-slate-500">AI-powered study navigator</div>
         </div>
       </div>
     </div>
 
-    <!-- Right: login format formmm -->
-    <div class="p-8 md:p-10 bg-neutral-950">
-      <h1 class="text-3xl md:text-4xl font-black tracking-wide">WELCOME TO STUDYHIVE</h1>
+    <!-- Right: Login Form -->
+    <div class="p-10 bg-white">
+      <h1 class="text-3xl md:text-4xl font-[Poppins] font-black tracking-wide text-slate-700">
+        Welcome Back
+      </h1>
+      <p class="text-sm text-slate-500 font-[Nunito_Sans] mt-1">Sign in to continue to StudyHive</p>
 
-      <form method="post" action="{% url 'core:login' %}" class="mt-8 space-y-5">
+      <form method="post" action="{% url 'core:login' %}" class="mt-8 space-y-6">
+        {% csrf_token %}
 
-        {% csrf_token %} 
-
-        <!-- user blocks -->
+        <!-- Username -->
         <div>
-          <label class="block text-sm text-neutral-300 mb-1" for="id_username">Email / Username</label>
+          <label class="block text-sm font-semibold text-slate-700 mb-1" for="id_username">
+            Email / Username
+          </label>
           {{ form.username }}
           {% if form.username.errors %}
-            <p class="mt-1 text-sm text-red-400">{{ form.username.errors.0 }}</p>
+            <p class="mt-1 text-sm text-red-500">{{ form.username.errors.0 }}</p>
           {% endif %}
         </div>
 
-        <!-- password blocks -->
+        <!-- Password -->
         <div>
-          <label class="block text-sm text-neutral-300 mb-1" for="id_password">Password</label>
+          <label class="block text-sm font-semibold text-slate-700 mb-1" for="id_password">
+            Password
+          </label>
           {{ form.password }}
           {% if form.password.errors %}
-            <p class="mt-1 text-sm text-red-400">{{ form.password.errors.0 }}</p>
+            <p class="mt-1 text-sm text-red-500">{{ form.password.errors.0 }}</p>
           {% endif %}
         </div>
 
-        <!-- non field errorr -->
+        <!-- Non-field errors -->
         {% if form.non_field_errors %}
-          <p class="text-sm text-red-400">{{ form.non_field_errors.0 }}</p>
+          <p class="text-sm text-red-500">{{ form.non_field_errors.0 }}</p>
         {% endif %}
 
         <button type="submit"
-          class="w-full rounded-xl border border-neutral-700 bg-neutral-100 text-neutral-900 font-semibold py-2.5 hover:bg-white transition">
-          Sign In to StudyHive
+          class="w-full rounded-lg bg-gradient-to-br from-emerald-300 to-emerald-400 text-white font-semibold py-3 shadow-md hover:shadow-lg hover:translate-y-[-2px] transition-all">
+          Sign In
         </button>
 
-        <div class="flex items-center justify-between text-xs text-neutral-400">
-          <a class="hover:text-neutral-200" href="#">Forgot password?</a>
-          <a class="hover:text-neutral-200" href="{% url 'core:register' %}">Create Account</a>
+        <div class="flex items-center justify-between text-xs text-slate-500">
+          <a class="hover:text-slate-700" href="#">Forgot password?</a>
+          <a class="hover:text-slate-700" href="{% url 'core:register' %}">Create Account</a>
         </div>
 
-        <p class="text-[11px] text-neutral-500 text-center pt-4">
+        <p class="text-[11px] text-slate-400 text-center pt-4">
           By signing in, you agree to our
-          <a href="#" class="underline hover:text-neutral-300">Terms of Service</a> •
-          <a href="#" class="underline hover:text-neutral-300">Privacy Policy</a> •
-          <a href="#" class="underline hover:text-neutral-300">Cookie Policy</a>
+          <a href="#" class="underline hover:text-slate-600">Terms of Service</a> •
+          <a href="#" class="underline hover:text-slate-600">Privacy Policy</a> •
+          <a href="#" class="underline hover:text-slate-600">Cookie Policy</a>
         </p>
       </form>
     </div>
