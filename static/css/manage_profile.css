@@ -345,7 +345,7 @@ body {
 }
 
 .avatar-actions {
-  display: flex;
+  display: inline-block;
   flex-direction: column;
   gap: 12px;
   align-items: flex-start;
@@ -355,7 +355,7 @@ body {
 .upload-button,
 .btn-reset,
 .btn-remove {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
   padding: 11px 20px;

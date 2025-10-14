@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delete Listing | Study-Hive</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Nunito+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/create_listings.css' %}">
+</head>
+
+<body>
+  <div class="create-page">
+    <div class="form-container" style="text-align: center; max-width: 500px;">
+      <h1>🗑️ Delete Listing</h1>
+      <p>Are you sure you want to delete <strong>{{ spot.name }}</strong>?</p>
+      <form method="POST">
+        {% csrf_token %}
+        <div class="form-actions" style="justify-content: center;">
+          <button type="submit" class="submit-btn" style="background: #D32F2F;">Yes, Delete</button>
+          <a href="{% url 'core:listings' %}" class="cancel-btn">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

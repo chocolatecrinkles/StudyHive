@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import login, logout
@@ -6,8 +6,6 @@ from core.forms import CustomUserCreationForm, CustomAuthenticationForm
 from .models import UserProfile  
 from django.http import JsonResponse
 from core.models import StudySpot
-
-
 
 def login_view(request):
 
@@ -132,8 +130,69 @@ def manage_profile(request):
 
 
 def listings_view(request):
-    study_spaces = StudySpot.objects.all()
+    study_spaces = StudySpot.objects.all().order_by('-id')
     return render(request, "listings.html", {"study_spaces": study_spaces})
+
+
+
+def create_listing(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        location = request.POST.get('location')
+        description = request.POST.get('description')
+        wifi = request.POST.get('wifi') == 'on'
+        ac = request.POST.get('ac') == 'on'
+        free = request.POST.get('free') == 'on'
+        coffee = request.POST.get('coffee') == 'on'
+        rating = request.POST.get('rating')
+        image = request.FILES.get('image')
+
+        # ✅ Save the record to Supabase DB
+        StudySpot.objects.create(
+            owner=request.user,
+            name=name,
+            location=location,
+            description=description,
+            wifi=wifi,
+            ac=ac,
+            free=free,
+            coffee=coffee,
+            rating=rating,
+            image=image
+        )
+
+        messages.success(request, "✅ Listing successfully created!")
+        return redirect('core:listings')
+
+    return render(request, 'create_listing.html')
+
+
+def my_listings_view(request):
+    # Example if you have user linking (modify if you store user_id)
+    user = request.user
+    my_listings = StudySpot.objects.filter(owner=user)
+    return render(request, "my_listings.html", {"my_listings": my_listings})
+
+def edit_listing(request, id):
+    spot = get_object_or_404(StudySpot, id=id)
+
+    if request.method == "POST":
+        spot.name = request.POST["name"]
+        spot.location = request.POST["location"]
+        spot.rating = request.POST["rating"]
+        spot.description = request.POST["description"]
+        if "image" in request.FILES:
+            spot.image = request.FILES["image"]
+        spot.save()
+        return redirect("core:my_listings")
+
+    return render(request, "edit_listing.html", {"spot": spot})
+
+
+def delete_listing(request, id):
+    spot = get_object_or_404(StudySpot, id=id)
+    spot.delete()
+    return redirect("core:my_listings")
 
 
 

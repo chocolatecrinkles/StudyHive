@@ -1,35 +1,35 @@
-/* listings.css - Updated with Study-Hive Color Palette & Typography */
+/* listings.css - Study-Hive Styling */
 
-/* ===== Color Palette Variables ===== */
+/* ===== Color Palette ===== */
 :root {
-  /* Primary Colors */
   --hive-green: #C8E6C9;
   --focus-mint: #A9D6A7;
   --spotlight-yellow: #FFF776;
   --cookie-dough: #455A64;
-  --dark-olive: #FFFFFF;
+  --white: #FFFFFF;
   
-  /* Semantic Colors */
   --primary-bg: #C8E6C9;
   --secondary-bg: #A9D6A7;
   --accent: #FFF776;
   --text-primary: #455A64;
   --text-secondary: #FFFFFF;
-  
-  /* UI Colors */
   --card-bg: #FFFFFF;
   --border-color: #E0E0E0;
   --hover-bg: #A9D6A7;
   --shadow: rgba(69, 90, 100, 0.1);
+  --error-light: #FFEBEE;
+  --error: #D32F2F;
 }
 
 /* ===== Typography ===== */
 body {
   font-family: 'Nunito Sans', sans-serif;
   color: var(--text-primary);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* Headlines & Titles - Poppins Bold */
 h1, h2, h3, .hero-title, .section-title, .card-title {
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
@@ -37,7 +37,7 @@ h1, h2, h3, .hero-title, .section-title, .card-title {
 }
 
 h1, .hero-title {
-  font-size: 2.5rem;
+  font-size: 3rem;
   line-height: 1.2;
 }
 
@@ -51,7 +51,6 @@ h3, .card-title {
   line-height: 1.4;
 }
 
-/* Body Text - Nunito Sans Regular */
 p, .card-description, .hero-subtitle, .stat-label {
   font-family: 'Nunito Sans', sans-serif;
   font-weight: 400;
@@ -59,17 +58,12 @@ p, .card-description, .hero-subtitle, .stat-label {
   line-height: 1.6;
 }
 
-/* Buttons - Nunito Sans Bold */
-button, .btn, .chip, .toggle-btn {
+button, .btn, .chip, .toggle-btn, label, .badge, .tag, .amenity-item {
   font-family: 'Nunito Sans', sans-serif;
   font-weight: 700;
-  text-transform: none;
 }
 
-/* Labels & Navigation - Nunito Sans Bold */
 label, .badge, .tag, .amenity-item {
-  font-family: 'Nunito Sans', sans-serif;
-  font-weight: 700;
   font-size: 0.875rem;
 }
 
@@ -112,7 +106,6 @@ label, .badge, .tag, .amenity-item {
   height: 300px;
   top: -100px;
   left: -100px;
-  animation-delay: 0s;
 }
 
 .circle-2 {
@@ -132,15 +125,13 @@ label, .badge, .tag, .amenity-item {
 }
 
 @keyframes float {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(30px, -30px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -30px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* ===== Hero Section ===== */
@@ -165,6 +156,8 @@ label, .badge, .tag, .amenity-item {
   box-shadow: 0 2px 8px var(--shadow);
   transition: all 0.3s ease;
   margin-bottom: 2rem;
+  border: none;
+  cursor: pointer;
 }
 
 .back-button:hover {
@@ -187,18 +180,12 @@ label, .badge, .tag, .amenity-item {
   background: var(--spotlight-yellow);
   color: var(--text-primary);
   border-radius: 50px;
-  font-size: 0.875rem;
   margin-bottom: 1rem;
   box-shadow: 0 2px 8px rgba(255, 247, 118, 0.3);
 }
 
-.hero-title {
-  margin: 1rem 0;
-  font-size: 3rem;
-}
-
 .gradient-text {
-  background: linear-gradient(135deg, var(--secondary-bg), var(--focus-mint));
+  background: linear-gradient(-135deg, var(--secondary-bg), var(--cookie-dough));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -211,7 +198,7 @@ label, .badge, .tag, .amenity-item {
   opacity: 0.9;
 }
 
-/* ===== Stats Row ===== */
+/* ===== Stats ===== */
 .stats-row {
   display: flex;
   justify-content: center;
@@ -236,7 +223,7 @@ label, .badge, .tag, .amenity-item {
   opacity: 0.8;
 }
 
-/* ===== Control Panel ===== */
+/* ===== Search & Filter Controls ===== */
 .control-panel {
   position: relative;
   z-index: 1;
@@ -262,11 +249,12 @@ label, .badge, .tag, .amenity-item {
   transform: translateY(-50%);
   color: var(--text-primary);
   opacity: 0.6;
+  pointer-events: none;
 }
 
 #searchInput {
   width: 100%;
-  padding: 1rem 3rem 1rem 3rem;
+  padding: 1rem 3rem;
   border: 2px solid transparent;
   border-radius: 50px;
   font-family: 'Nunito Sans', sans-serif;
@@ -301,7 +289,6 @@ label, .badge, .tag, .amenity-item {
   opacity: 1;
 }
 
-/* ===== Filter Controls ===== */
 .filter-controls {
   display: flex;
   gap: 2rem;
@@ -358,14 +345,13 @@ label, .badge, .tag, .amenity-item {
   gap: 0.5rem;
 }
 
-.chip:hover,
-.chip.active {
+.chip:hover, .chip.active {
   background: var(--secondary-bg);
   color: var(--text-secondary);
   border-color: var(--secondary-bg);
 }
 
-/* ===== Listings Container ===== */
+/* ===== Listings Section ===== */
 .listings-container {
   position: relative;
   z-index: 1;
@@ -405,11 +391,14 @@ label, .badge, .tag, .amenity-item {
   color: var(--text-secondary);
 }
 
-/* ===== Listings Grid ===== */
 .listings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 2rem;
+}
+
+.listings-grid.list-view {
+  grid-template-columns: 1fr;
 }
 
 /* ===== Listing Card ===== */
@@ -448,10 +437,7 @@ label, .badge, .tag, .amenity-item {
 
 .image-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: rgba(69, 90, 100, 0.7);
   display: flex;
   align-items: center;
@@ -505,7 +491,7 @@ label, .badge, .tag, .amenity-item {
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: start;
+  align-items: flex-start;
   margin-bottom: 0.75rem;
 }
 
@@ -526,7 +512,6 @@ label, .badge, .tag, .amenity-item {
   opacity: 0.8;
 }
 
-/* ===== Card Amenities ===== */
 .card-amenities {
   display: flex;
   flex-wrap: wrap;
@@ -539,7 +524,6 @@ label, .badge, .tag, .amenity-item {
   align-items: center;
   gap: 0.375rem;
   color: var(--text-primary);
-  font-size: 0.875rem;
   opacity: 0.8;
 }
 
@@ -636,106 +620,29 @@ label, .badge, .tag, .amenity-item {
 .btn-delete {
   background: #FFEBEE;
   color: #D32F2F;
+  border: none;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .btn-delete:hover {
+  background: #D32F2F;
+  color: white;
   transform: scale(1.1);
-  background: #FFCDD2;
 }
 
-/* ===== Empty State ===== */
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  grid-column: 1 / -1;
-}
 
-.empty-icon {
-  font-size: 4rem;
-  color: var(--text-primary);
-  opacity: 0.3;
-  margin-bottom: 1rem;
-}
-
-.empty-state h3 {
-  margin-bottom: 0.5rem;
-}
-
-.empty-state p {
-  opacity: 0.7;
-  margin-bottom: 1.5rem;
-}
-
-/* ===== FAB Button ===== */
-.fab {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: var(--secondary-bg);
-  color: var(--text-secondary);
-  border: none;
-  box-shadow: 0 4px 12px var(--shadow);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  transition: all 0.3s ease;
-  z-index: 100;
-}
-
-.fab:hover {
-  transform: scale(1.1) rotate(90deg);
-  box-shadow: 0 6px 20px var(--shadow);
-}
-
-/* ===== Loading Overlay ===== */
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(200, 230, 201, 0.9);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid var(--primary-bg);
-  border-top-color: var(--secondary-bg);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-overlay p {
-  margin-top: 1rem;
-  color: var(--text-primary);
-  font-weight: 700;
-}
-
-/* ===== LIST VIEW FIX (Aligned and Uniform Cards) ===== */
-.listings-grid.list-view {
-  grid-template-columns: 1fr;
-}
-
+/* ===== List View ===== */
 .listings-grid.list-view .listing-card {
   display: flex;
   align-items: stretch;
-  height: 230px; /* uniform height */
-  overflow: hidden;
+  height: 230px;
   border-radius: 20px;
   background: var(--card-bg);
   box-shadow: 0 4px 12px var(--shadow);
@@ -765,18 +672,142 @@ label, .badge, .tag, .amenity-item {
 
 .listings-grid.list-view .card-description {
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* only two lines visible */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   color: var(--text-primary);
 }
 
-/* Responsive Fix */
+/* ===== Empty State ===== */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  grid-column: 1 / -1;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: var(--text-primary);
+  opacity: 0.3;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  opacity: 0.7;
+  margin-bottom: 1.5rem;
+}
+
+/* ===== Loading State ===== */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(200, 230, 201, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--primary-bg);
+  border-top-color: var(--secondary-bg);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-overlay p {
+  margin-top: 1rem;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.fab {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: rgb(86, 187, 18);
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  z-index: 9999 !important; /* ← Force above all elements */
+}
+
+.fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.fab i {
+  pointer-events: none; 
+}
+
+
+/* ===== Image Preview ===== */
+.image-preview-container {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.image-preview {
+  width: 100%;
+  max-width: 300px;
+  border-radius: 12px;
+  margin-top: 0.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.image-preview:hover {
+  transform: scale(1.05);
+}
+
+/* ===== Responsive Design ===== */
 @media (max-width: 768px) {
+  h1, .hero-title {
+    font-size: 2rem;
+  }
+
+  .stats-row {
+    gap: 1.5rem;
+  }
+
+  .filter-controls {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .listings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
   .listings-grid.list-view .listing-card {
     flex-direction: column;
     height: auto;
   }
+
   .listings-grid.list-view .card-image-container {
     width: 100%;
     height: 200px;
@@ -784,44 +815,38 @@ label, .badge, .tag, .amenity-item {
   }
 }
 
-
-/* ===== Responsive Design ===== */
-@media (max-width: 768px) {
-  .hero-title {
-    font-size: 2rem;
-  }
-  
-  .stats-row {
-    gap: 1.5rem;
-  }
-  
-  .filter-controls {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .listings-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .section-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
-  }
-}
-
 @media (max-width: 480px) {
   .hero-section {
     padding: 2rem 1rem;
   }
-  
+
   .listings-container {
     padding: 1rem;
   }
-  
+
   .fab {
     bottom: 1rem;
     right: 1rem;
   }
 }
+
+.hero-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 2rem;
+    }
+
+.my-listings-btn {
+      background: #2e7d32;
+      color: white;
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: 0.3s ease;
+    }
+
+.my-listings-btn:hover {
+      background: #1b5e20;
+    }

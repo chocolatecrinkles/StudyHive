@@ -1,0 +1,295 @@
+/* =========================================
+   StudyHive - Create Listing Page (Redesign)
+   -----------------------------------------
+   Modern, minimal, airy layout aligned with StudyHive branding
+   ========================================= */
+
+/* ===== Base Colors ===== */
+:root {
+  --hive-green: #C8E6C9;
+  --focus-mint: #A9D6A7;
+  --mint-dark: #7BBE8A;
+  --spotlight-yellow: #FFF776;
+  --text-dark: #2E3A2F;
+  --text-light: #FFFFFF;
+  --card-bg: #FFFFFF;
+  --bg-gradient: linear-gradient(135deg, #C8E6C9 0%, #A9D6A7 100%);
+  --shadow: 0 8px 20px rgba(69, 90, 100, 0.1);
+}
+
+/* ===== Global Styles ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Nunito Sans", sans-serif;
+  color: var(--text-dark);
+  background: var(--bg-gradient);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ===== Animated Background ===== */
+.bg-decoration {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.circle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.08;
+  background: var(--spotlight-yellow);
+  filter: blur(40px);
+  animation: float 20s infinite ease-in-out;
+}
+
+.circle-1 { width: 300px; height: 300px; top: -120px; left: -120px; }
+.circle-2 { width: 220px; height: 220px; bottom: -80px; right: -80px; animation-delay: 6s; }
+.circle-3 { width: 160px; height: 160px; top: 50%; right: 10%; animation-delay: 12s; }
+
+@keyframes float {
+  0%,100% { transform: translate(0,0) scale(1); }
+  50% { transform: translate(20px,-30px) scale(1.05); }
+}
+
+/* ===== Header ===== */
+.header-bar {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow);
+  border-radius: 0 0 20px 20px;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--card-bg);
+  color: var(--text-dark);
+  text-decoration: none;
+  padding: 0.6rem 1.3rem;
+  border-radius: 50px;
+  font-weight: 700;
+  transition: 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.back-button:hover {
+  background: var(--focus-mint);
+  color: var(--text-light);
+  transform: translateX(-3px);
+}
+
+.page-title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.page-title i {
+  color: var(--mint-dark);
+  font-size: 1.8rem;
+}
+
+/* ===== Form Container ===== */
+.form-container {
+  max-width: 900px;
+  margin: 4rem auto;
+  background: var(--card-bg);
+  border-radius: 24px;
+  padding: 3rem 2.5rem;
+  box-shadow: var(--shadow);
+  animation: fadeInUp 0.7s ease;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Form Inputs ===== */
+.form-group {
+  margin-bottom: 1.8rem;
+}
+
+.form-group label {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-dark);
+}
+
+.form-group label i {
+  color: var(--mint-dark);
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea,
+.form-group input[type="file"] {
+  width: 100%;
+  padding: 1rem 1.2rem;
+  border: 2px solid #E0E0E0;
+  border-radius: 12px;
+  font-size: 1rem;
+  background: #FAFAFA;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--focus-mint);
+  box-shadow: 0 0 0 3px rgba(169, 214, 167, 0.2);
+  background: #FFFFFF;
+}
+
+/* ===== Textarea ===== */
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* ===== Checkbox Section ===== */
+.checkbox-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  background: #F8FDF8;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #E8EEE8;
+}
+
+.checkbox-group label {
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.checkbox-group input {
+  accent-color: var(--focus-mint);
+}
+
+/* ===== Buttons ===== */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2.5rem;
+}
+
+.submit-btn,
+.cancel-btn {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border: none;
+}
+
+.submit-btn {
+  background: linear-gradient(135deg, var(--focus-mint), var(--hive-green));
+  color: var(--text-light);
+  box-shadow: var(--shadow);
+}
+
+.submit-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+.cancel-btn {
+  background: #FAFAFA;
+  color: var(--text-dark);
+  border: 2px solid #E0E0E0;
+}
+
+.cancel-btn:hover {
+  background: var(--focus-mint);
+  color: var(--text-light);
+}
+
+/* ===== Image Preview ===== */
+.image-preview-container {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.image-preview {
+  max-width: 280px;
+  border-radius: 12px;
+  margin-top: 1rem;
+  box-shadow: var(--shadow);
+  transition: 0.3s ease;
+}
+
+.image-preview:hover {
+  transform: scale(1.05);
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 768px) {
+  .header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 1rem 1.5rem;
+  }
+
+  .form-container {
+    padding: 2rem 1.5rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .submit-btn,
+  .cancel-btn {
+    width: 100%;
+  }
+}
+
+/* ===== Accessibility ===== */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+
+/* Active Save Button */
+.submit-btn.active {
+  background: linear-gradient(135deg, #2E7D32, #388E3C); /* darker green */
+  color: #FFFFFF;
+  box-shadow: 0 6px 20px rgba(46, 125, 50, 0.3);
+  transform: translateY(-2px);
+}
+
+.submit-btn.active:hover {
+  background: linear-gradient(135deg, #1B5E20, #2E7D32);
+  box-shadow: 0 8px 24px rgba(27, 94, 32, 0.35);
+}
