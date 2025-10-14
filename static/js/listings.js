@@ -89,3 +89,13 @@ function deleteListing(id) {
     alert("Listing deleted.");
   }
 }
+
+
+function confirmDelete(event, name) {
+      event.preventDefault();
+      if (confirm(`🗑️ Delete "${name}" permanently?`)) {
+        event.target.submit();
+      }
+    }
+
+

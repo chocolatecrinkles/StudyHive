@@ -1,0 +1,81 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Listings | StudyHive</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Nunito+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/listings.css' %}">
+</head>
+
+<body>
+  <div class="listings-page">
+    <div class="bg-decoration">
+      <div class="circle circle-1"></div>
+      <div class="circle circle-2"></div>
+      <div class="circle circle-3"></div>
+    </div>
+
+    <div class="hero-section">
+      <div class="hero-header">
+        <a href="{% url 'core:listings' %}" class="back-button"><i class="fas fa-arrow-left"></i> Back</a>
+        <h1 class="hero-title"><i class="fas fa-user"></i> My Listings</h1>
+      </div>
+    </div>
+
+    <div class="listings-container">
+      {% if my_listings %}
+        {% for spot in my_listings %}
+          <div class="listing-card">
+            <div class="card-image-container">
+              {% if spot.image %}
+                <img src="{{ spot.image.url }}" alt="{{ spot.name }}" class="card-image">
+              {% else %}
+                <img src="{% static 'images/default-placeholder.jpg' %}" alt="No image" class="card-image">
+              {% endif %}
+            </div>
+
+            <div class="card-content">
+              <div class="card-header">
+                <h3 class="card-title">{{ spot.name }}</h3>
+                <div class="card-rating"><i class="fas fa-star"></i> {{ spot.rating }}</div>
+              </div>
+              <p class="card-description">{{ spot.description }}</p>
+              <p class="amenity-item"><i class="fas fa-map-marker-alt"></i> {{ spot.location }}</p>
+
+              <div class="card-footer">
+                <a href="{% url 'core:edit_listing' spot.id %}" class="btn-icon btn-edit" title="Edit Listing">
+                  <i class="fas fa-pen"></i>
+                </a>
+
+                <form action="{% url 'core:delete_listing' spot.id %}" method="POST" onsubmit="return confirmDelete(event, '{{ spot.name }}')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-icon btn-delete" title="Delete Listing">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p style="text-align:center; color:#555; margin-top:2rem;">You haven’t created any listings yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- Floating Add Button -->
+    <a href="{% url 'core:create_listing' %}" class="fab" title="Add New Listing">
+      <i class="fas fa-plus"></i>
+    </a>
+  </div>
+
+  <script>
+    function confirmDelete(event, name) {
+      event.preventDefault();
+      if (confirm(`Delete "${name}" permanently?`)) event.target.submit();
+    }
+  </script>
+</body>
+</html>

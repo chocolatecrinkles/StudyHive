@@ -13,14 +13,17 @@ class UserProfile(models.Model):
         return self.user.username
 
 class StudySpot(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
-    address = models.CharField(max_length=255)
-    wifi_available = models.BooleanField(default=False)
-    has_outlets = models.BooleanField(default=False)
-    is_free = models.BooleanField(default=True)
-    air_conditioned = models.BooleanField(default=False)
-    image = models.ImageField(upload_to='study_spaces/', blank=True, null=True)
+    name = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    description = models.TextField()
+    wifi = models.BooleanField(default=False)
+    ac = models.BooleanField(default=False)
+    free = models.BooleanField(default=False)
+    coffee = models.BooleanField(default=False)
+    rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
+    image = models.ImageField(upload_to='studyspots/', blank=True, null=True)
+
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='listings')
 
     def __str__(self):
         return self.name
