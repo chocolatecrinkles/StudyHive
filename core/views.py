@@ -157,7 +157,7 @@ def create_listing(request):
             ac=ac,
             free=free,
             coffee=coffee,
-            rating=rating,
+            rating=0,
             image=image
         )
 
@@ -179,7 +179,6 @@ def edit_listing(request, id):
     if request.method == "POST":
         spot.name = request.POST["name"]
         spot.location = request.POST["location"]
-        spot.rating = request.POST["rating"]
         spot.description = request.POST["description"]
         if "image" in request.FILES:
             spot.image = request.FILES["image"]

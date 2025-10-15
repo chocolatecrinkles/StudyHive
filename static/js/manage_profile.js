@@ -94,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (res.ok) {
-        showSuccessPopup("✅ Profile Updated Successfully!");
+        showSuccessPopup("Profile Updated Successfully!");
         setTimeout(() => (window.location.href = "/profile/"), 1500);
       } else {
         const msg =
