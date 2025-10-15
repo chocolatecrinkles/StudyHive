@@ -20,7 +20,7 @@ class StudySpot(models.Model):
     ac = models.BooleanField(default=False)
     free = models.BooleanField(default=False)
     coffee = models.BooleanField(default=False)
-    rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
+    rating = models.DecimalField(max_digits=3, decimal_places=1, default=0)
     image = models.ImageField(upload_to='studyspots/', blank=True, null=True)
 
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='listings')
