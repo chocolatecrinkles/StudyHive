@@ -32,9 +32,11 @@
           <i class="fas fa-arrow-left"></i>
           <span>Back to Home</span>
         </a>
+        {% if user.is_staff %}
         <a href="{% url 'core:my_listings' %}" class="my-listings-btn" title="My Listings">
           <i class="fas fa-user"></i> My Listings
         </a>
+        {% endif %}
       </div>
 
         <div class="hero-content">
@@ -106,7 +108,7 @@
         <div class="listings-grid" id="listingsGrid">
 
           <!-- ========== STATIC LISTINGS (8) ========== -->
-          <div class="listing-card">
+          <!-- <div class="listing-card">
             <div class="card-image-container">
               <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=500" alt="Rizal Memorial Library" class="card-image">
             </div>
@@ -203,7 +205,7 @@
               <p class="card-description">Popular 4.9-star café with long hours, Wi-Fi, and air-conditioned seating.</p>
               <div class="card-amenities"><span class="amenity-item"><i class="fas fa-map-marker-alt"></i> Cebu City</span></div>
             </div>
-          </div>
+          </div> -->
 
           <!-- ========== DYNAMIC LISTINGS ========== -->
           {% for spot in study_spaces %}
@@ -233,9 +235,11 @@
       </div>
 
       <!-- Floating Add Button -->
+       {% if user.is_staff %}
       <a href="{% url 'core:create_listing' %}" class="fab" title="Add New Listing" aria-label="Add New Listing">
         <i class="fas fa-plus"></i>
       </a>
+      {% endif %}
     </div>
 
     <!-- JS -->

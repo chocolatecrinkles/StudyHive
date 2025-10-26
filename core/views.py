@@ -6,6 +6,14 @@ from core.forms import CustomUserCreationForm, CustomAuthenticationForm
 from .models import UserProfile  
 from django.http import JsonResponse
 from core.models import StudySpot
+from django.core.exceptions import PermissionDenied
+
+def staff_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_staff:
+            raise PermissionDenied  # Returns a 403 Forbidden page
+        return view_func(request, *args, **kwargs)
+    return login_required(wrapper)
 
 def login_view(request):
 
@@ -134,7 +142,7 @@ def listings_view(request):
     return render(request, "listings.html", {"study_spaces": study_spaces})
 
 
-
+@staff_required
 def create_listing(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -166,13 +174,14 @@ def create_listing(request):
 
     return render(request, 'create_listing.html')
 
-
+@staff_required
 def my_listings_view(request):
-    # Example if you have user linking (modify if you store user_id)
-    user = request.user
-    my_listings = StudySpot.objects.filter(owner=user)
-    return render(request, "my_listings.html", {"my_listings": my_listings})
+    my_listings = StudySpot.objects.all().order_by('-id')
+    return render(request, 'my_listings.html', {'my_listings': my_listings})
 
+
+
+@staff_required
 def edit_listing(request, id):
     spot = get_object_or_404(StudySpot, id=id)
 
