@@ -27,3 +27,38 @@ class StudySpot(models.Model):
 
     def __str__(self):
         return self.name
+
+class StaffApplication(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    # Personal Info
+    full_name = models.CharField(max_length=150)
+    email = models.EmailField()
+    phone_number = models.CharField(max_length=20)
+    government_id = models.CharField(max_length=500, blank=True, null=True)
+    
+    # Study Place Info
+    study_place_name = models.CharField(max_length=150)
+    study_place_address = models.CharField(max_length=255)
+    study_place_website = models.URLField(blank=True, null=True)
+    business_registration_number = models.CharField(max_length=100, blank=True, null=True)
+    proof_of_ownership = models.CharField(max_length=500, blank=True, null=True)
+    role_description = models.CharField(max_length=100)
+    proof_of_address = models.CharField(max_length=500, blank=True, null=True)
+
+    social_media_links = models.TextField(blank=True, null=True)
+    
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('Pending', 'Pending'),
+            ('Approved', 'Approved'),
+            ('Rejected', 'Rejected'),
+        ],
+        default='Pending'
+    )
+
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.full_name} ({self.status})"

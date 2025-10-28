@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
+from .models import StaffApplication
+from .models import StudySpot
 
 COMMON_INPUT_CLASSES = (
     "w-full rounded-md border-2 border-[#8BC29A] bg-white text-slate-800 "
@@ -71,3 +73,40 @@ class CustomAuthenticationForm(AuthenticationForm):
             "placeholder": "Enter your password",
         })
     )
+
+class StaffApplicationForm(forms.ModelForm):
+    class Meta:
+        model = StaffApplication
+        fields = [
+            # Personal Info
+            'full_name', 'email', 'phone_number', 'government_id',
+            # Study Place Info
+            'study_place_name', 'study_place_address', 'study_place_website',
+            'business_registration_number', 'proof_of_ownership', 'role_description',
+            # Address & Social
+            'proof_of_address', 'social_media_links'
+        ]
+        widgets = {
+            'full_name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Enter full name'}),
+            'email': forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'Enter your email'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Enter contact number'}),
+            'study_place_name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Name of study place'}),
+            'study_place_address': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Complete address'}),
+            'study_place_website': forms.URLInput(attrs={'class': 'form-input', 'placeholder': 'Website (optional)'}),
+            'business_registration_number': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Optional'}),
+            'role_description': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g., Manager, Owner'}),
+            'social_media_links': forms.Textarea(attrs={'class': 'form-input', 'rows': 2, 'placeholder': 'Links separated by commas'}),
+        }
+
+
+
+class StudySpotForm(forms.ModelForm):
+    class Meta:
+        model = StudySpot
+        # List all fields the user can edit
+        fields = [
+            'name', 'location', 'description', 
+            'wifi', 'ac', 'free', 'coffee', 
+            'rating', 'image'
+        ]
+        # 'owner' is left out on purpose

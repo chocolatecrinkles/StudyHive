@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% load static %}
+{% load file_filters %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/apply_staff.css' %}">
+
+<div class="page-header">
+  <button class="back-btn" id="backBtn" title="Go back to previous page">
+    <span class="back-arrow">←</span> Back
+  </button>
+</div>
+
+<div class="apply-container">
+  <h1>
+    {% if application and application.status == "Rejected" %}
+      Reapply as StudyHive Staff
+    {% elif application and application.status == "Pending" %}
+      Application Pending Review
+    {% elif application and application.status == "Approved" %}
+      You're Already Staff
+    {% else %}
+      Apply to Become StudyHive Staff
+    {% endif %}
+  </h1>
+
+  <p>
+    Join <strong>StudyHive</strong>'s trusted network and help manage study-friendly spots in your area.
+  </p>
+
+  {% if submitted %}
+    <div class="alert alert-success">
+      <span>✅</span>
+      <div>
+        <strong>Application Submitted!</strong> Your details have been sent for review.
+      </div>
+    </div>
+    <a href="{% url 'core:home' %}">← Return to Home</a>
+
+  {% elif application %}
+    <div class="alert {% if application.status == 'Pending' %}alert-warning{% elif application.status == 'Approved' %}alert-success{% else %}alert-error{% endif %}">
+      <span>
+        {% if application.status == "Pending" %}⏳{% elif application.status == "Approved" %}✅{% else %}❌{% endif %}
+      </span>
+      <div>
+        {% if application.status == "Pending" %}
+          Your application is currently under review.
+        {% elif application.status == "Approved" %}
+          You are already approved as StudyHive staff.
+        {% else %}
+          Your application was rejected. You may reapply below.
+        {% endif %}
+      </div>
+    </div>
+
+    <h2>📋 Your Submitted Details</h2>
+    <div class="divider"></div>
+
+    <div class="form-section">
+      <p><strong>Full Name:</strong> {{ application.full_name }}</p>
+      <p><strong>Email:</strong> {{ application.email }}</p>
+      <p><strong>Phone:</strong> {{ application.phone_number }}</p>
+      <p><strong>Study Place:</strong> {{ application.study_place_name }}</p>
+      <p><strong>Address:</strong> {{ application.study_place_address }}</p>
+      <p><strong>Role:</strong> {{ application.role_description }}</p>
+      <p><strong>Status:</strong> <span style="color: {% if application.status == 'Approved' %}#3fa044{% elif application.status == 'Pending' %}#f3c236{% else %}#d93a3a{% endif %}; font-weight: 700;">{{ application.status }}</span></p>
+    </div>
+
+    <h2>📄 Uploaded Documents</h2>
+    <div class="divider"></div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+      {% if application.government_id %}
+      <div class="doc-card">
+        <div class="doc-header">🪪 Government ID</div>
+        {% if application.government_id|is_pdf %}
+          <iframe src="{{ application.government_id }}"></iframe>
+        {% else %}
+          <img src="{{ application.government_id }}" alt="Government ID">
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% if application.proof_of_ownership %}
+      <div class="doc-card">
+        <div class="doc-header">🏢 Proof of Ownership</div>
+        {% if application.proof_of_ownership|is_pdf %}
+          <iframe src="{{ application.proof_of_ownership }}"></iframe>
+        {% else %}
+          <img src="{{ application.proof_of_ownership }}" alt="Proof of Ownership">
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% if application.proof_of_address %}
+      <div class="doc-card">
+        <div class="doc-header">📍 Proof of Address</div>
+        {% if application.proof_of_address|is_pdf %}
+          <iframe src="{{ application.proof_of_address }}"></iframe>
+        {% else %}
+          <img src="{{ application.proof_of_address }}" alt="Proof of Address">
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    <div style="margin-top: 2rem;">
+      <a href="{% url 'core:home' %}">← Return to Home</a>
+    </div>
+
+  {% else %}
+    <form method="post" enctype="multipart/form-data" id="staffApplicationForm" class="form-section">
+      {% csrf_token %}
+
+      <div class="section-title">👤 Personal Information</div>
+      
+      <div class="form-group">
+        <label>Full Name <span class="required-indicator">*</span></label>
+        <input type="text" name="full_name" required data-validate="text">
+        <div class="form-error">Please enter a valid name</div>
+      </div>
+
+      <div class="form-group">
+        <label>Email <span class="required-indicator">*</span></label>
+        <input type="email" name="email" required data-validate="email">
+        <div class="form-error">Please enter a valid email address</div>
+      </div>
+
+      <div class="form-group">
+        <label>Phone Number <span class="required-indicator">*</span></label>
+        <input type="text" name="phone_number" required data-validate="phone">
+        <div class="form-error">Please enter a valid phone number</div>
+      </div>
+
+      <div class="form-group">
+        <label>Government ID <span style="color: #888; font-weight: 400;">(optional)</span></label>
+        <input type="file" name="government_id" data-file-type="id">
+        <div class="form-error">File size must be less than 5MB</div>
+      </div>
+
+      <div class="section-title" style="margin-top: 2rem;">🏢 Study Place Information</div>
+
+      <div class="form-group">
+        <label>Study Place Name <span class="required-indicator">*</span></label>
+        <input type="text" name="study_place_name" required data-validate="text">
+        <div class="form-error">Please enter the study place name</div>
+      </div>
+
+      <div class="form-group">
+        <label>Study Place Address <span class="required-indicator">*</span></label>
+        <input type="text" name="study_place_address" required data-validate="text">
+        <div class="form-error">Please enter a valid address</div>
+      </div>
+
+      <div class="form-group">
+        <label>Website <span style="color: #888; font-weight: 400;">(optional)</span></label>
+        <input type="url" name="study_place_website" data-validate="url">
+        <div class="form-error">Please enter a valid URL</div>
+      </div>
+
+      <div class="form-group">
+        <label>Business Registration Number <span style="color: #888; font-weight: 400;">(optional)</span></label>
+        <input type="text" name="business_registration_number">
+      </div>
+
+      <div class="form-group">
+        <label>Proof of Ownership <span style="color: #888; font-weight: 400;">(optional)</span></label>
+        <input type="file" name="proof_of_ownership" data-file-type="ownership">
+        <div class="form-error">File size must be less than 5MB</div>
+      </div>
+
+      <div class="section-title" style="margin-top: 2rem;">💼 Role & Additional Info</div>
+
+      <div class="form-group">
+        <label>Role Description <span class="required-indicator">*</span></label>
+        <input type="text" name="role_description" required data-validate="text">
+        <div class="form-error">Please describe your role</div>
+      </div>
+
+      <div class="form-group">
+        <label>Proof of Address <span style="color: #888; font-weight: 400;">(optional)</span></label>
+        <input type="file" name="proof_of_address" data-file-type="address">
+        <div class="form-error">File size must be less than 5MB</div>
+      </div>
+
+      <div class="form-group">
+        <label>Social Media Links <span style="color: #888; font-weight: 400;">(optional)</span></label>
+        <textarea name="social_media_links" rows="3" placeholder="Enter your social media links (one per line)"></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">Submit Application</button>
+    </form>
+  {% endif %}
+</div>
+
+<script src="{% static 'js/apply_staff.js' %}"></script>
+
+{% endblock %}
