@@ -1,74 +1,40 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.querySelector(".listing-form");
-  const imageInput = document.getElementById("image");
-  const ratingInput = document.getElementById("rating");
-  const submitBtn = document.querySelector(".submit-btn");
+document.addEventListener('DOMContentLoaded', function() {
 
-  // 🖼️ Create dynamic image preview container
-  const previewContainer = document.createElement("div");
-  previewContainer.classList.add("image-preview-container");
-  imageInput.parentNode.appendChild(previewContainer);
+  const imageUploadInput = document.getElementById('image-upload');
+  const imagePreviewContainer = document.getElementById('image-preview-container');
+  const fileUploadLabel = document.querySelector('.file-upload-label span');
 
-  // 📸 Live Image Preview
-  imageInput.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    previewContainer.innerHTML = "";
+  if (imageUploadInput) {
+    imageUploadInput.addEventListener('change', function(event) {
+      
+      const file = event.target.files[0];
 
-    if (file && file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = document.createElement("img");
-        img.src = event.target.result;
-        img.alt = "Preview";
-        img.classList.add("image-preview");
-        previewContainer.appendChild(img);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      previewContainer.innerHTML = "<p style='color:#777;'>No valid image selected.</p>";
-    }
-  });
+      if (file) {
+        // Clear previous preview
+        imagePreviewContainer.innerHTML = '';
 
-  // ✅ Activate Save button when form is complete
-  form.addEventListener("input", () => {
-    const name = form.querySelector("#name").value.trim();
-    const location = form.querySelector("#location").value.trim();
-    const description = form.querySelector("#description").value.trim();
-    const rating = form.querySelector("#rating").value.trim();
+        // Create new preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          imagePreviewContainer.appendChild(img);
+        }
+        reader.readAsDataURL(file);
 
-    if (name && location && description && rating) {
-      submitBtn.classList.add("active");
-    } else {
-      submitBtn.classList.remove("active");
-    }
-  });
+        // Update label text
+        if (fileUploadLabel) {
+          fileUploadLabel.textContent = file.name; // Show the file name
+        }
+        
+      } else {
+        // Reset if no file is selected
+        imagePreviewContainer.innerHTML = '';
+        if (fileUploadLabel) {
+          fileUploadLabel.textContent = 'Upload Space Image';
+        }
+      }
+    });
+  }
 
-  // 🚀 Form Validation + Real Submit
-  form.addEventListener("submit", (e) => {
-    const name = document.getElementById("name").value.trim();
-    const location = document.getElementById("location").value.trim();
-    const description = document.getElementById("description").value.trim();
-    const rating = parseFloat(ratingInput.value);
-
-    if (!name || !location || !description) {
-      e.preventDefault();
-      alert("⚠️ Please fill out all required fields.");
-      return;
-    }
-
-    if (isNaN(rating) || rating < 1 || rating > 5) {
-      e.preventDefault();
-      alert("⚠️ Please enter a valid rating between 1 and 5.");
-      return;
-    }
-
-    if (!confirm("Are you sure you want to save this listing?")) {
-      e.preventDefault();
-      return;
-    }
-
-    // ✅ Let Django handle the POST + redirect
-    submitBtn.textContent = "Saving...";
-    submitBtn.disabled = true;
-  });
 });

@@ -856,3 +856,21 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+.btn-disabled {
+  background-color: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
+  transition: background-color 0.3s ease;
+}
+
+.btn-active {
+  background-color: #2E7D32; /* dark green */
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-active:hover {
+  background-color: #1b5e20;
+}

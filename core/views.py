@@ -7,6 +7,13 @@ from .models import UserProfile
 from django.http import JsonResponse
 from core.models import StudySpot
 from django.core.exceptions import PermissionDenied
+from .models import StaffApplication
+import os
+from supabase import create_client
+from dotenv import load_dotenv
+from .forms import StaffApplicationForm
+from .forms import StudySpotForm
+
 
 def staff_required(view_func):
     def wrapper(request, *args, **kwargs):
@@ -37,7 +44,17 @@ def login_view(request):
 
 @login_required(login_url="core:login")
 def home(request):
-    return render(request, "home.html")
+    study_spaces = StudySpot.objects.all()
+    show_staff_popup = False 
+    if request.user.is_staff and request.session.get('show_staff_congrats'):
+        show_staff_popup = True 
+        del request.session['show_staff_congrats'] 
+
+    context = {
+        'study_spaces': study_spaces,
+        'show_staff_popup': show_staff_popup
+    }
+    return render(request, 'home.html', context)
 
 
 def logout_view(request):
@@ -137,9 +154,9 @@ def manage_profile(request):
     return render(request, "manage_profile.html", context)
 
 
-def listings_view(request):
-    study_spaces = StudySpot.objects.all().order_by('-id')
-    return render(request, "listings.html", {"study_spaces": study_spaces})
+@login_required(login_url="core:login")
+def map_view(request):
+    return render(request, "map_view.html")
 
 
 @staff_required
@@ -170,13 +187,13 @@ def create_listing(request):
         )
 
         messages.success(request, "✅ Listing successfully created!")
-        return redirect('core:listings')
+        return redirect('core:home')
 
     return render(request, 'create_listing.html')
 
 @staff_required
 def my_listings_view(request):
-    my_listings = StudySpot.objects.all().order_by('-id')
+    my_listings = StudySpot.objects.filter(owner=request.user).order_by('-id')
     return render(request, 'my_listings.html', {'my_listings': my_listings})
 
 
@@ -185,22 +202,90 @@ def my_listings_view(request):
 def edit_listing(request, id):
     spot = get_object_or_404(StudySpot, id=id)
 
-    if request.method == "POST":
-        spot.name = request.POST["name"]
-        spot.location = request.POST["location"]
-        spot.description = request.POST["description"]
-        if "image" in request.FILES:
-            spot.image = request.FILES["image"]
-        spot.save()
-        return redirect("core:my_listings")
+    # --- CRITICAL SECURITY CHECK ---
+    if spot.owner != request.user:
+        messages.error(request, "You are not authorized to edit this listing.")
+        return redirect('core:my_listings')
+    # --- END OF CHECK ---
 
-    return render(request, "edit_listing.html", {"spot": spot})
+    if request.method == 'POST':
+        form = StudySpotForm(request.POST, request.FILES, instance=spot)
+        if form.is_valid():
+            form.save() 
+            messages.success(request, "Listing updated successfully.")
+            return redirect('core:my_listings')
+    else:
+        form = StudySpotForm(instance=spot) 
 
+    # Pass the form and spot to the template
+    return render(request, 'edit_listing.html', {'form': form, 'spot': spot})
 
+@staff_required
 def delete_listing(request, id):
     spot = get_object_or_404(StudySpot, id=id)
-    spot.delete()
+
+    # ---CRITICAL SECURITY CHECK ---
+    if spot.owner != request.user:
+        messages.error(request, "You are not authorized to delete this listing.")
+        return redirect('core:my_listings')
+    # --- END OF CHECK ---
+
+    if request.method == "POST":
+        spot.delete()
+        messages.success(request, "Listing successfully deleted.")
+    
     return redirect("core:my_listings")
 
 
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+@login_required
+def apply_staff(request):
+    # Get existing application (if any)
+    application = StaffApplication.objects.filter(user=request.user).first()
+
+    if request.method == "POST":
+        form = StaffApplicationForm(request.POST, request.FILES, instance=application)
+        if form.is_valid():
+            app = form.save(commit=False)
+            app.user = request.user
+            app.status = "Pending"
+            app.save()
+
+            # Upload each file field to Supabase Storage
+            file_fields = ["government_id", "proof_of_ownership", "proof_of_address"]
+            for field_name in file_fields:
+                uploaded_file = request.FILES.get(field_name)
+                if uploaded_file:
+                    path = f"staff_docs/{field_name}/{uploaded_file.name}"
+                    file_content = uploaded_file.read()
+                    supabase.storage.from_("staff_docs").upload(path, file_content)
+
+                    # Generate public URL for the uploaded file
+                    public_url = supabase.storage.from_("staff_docs").get_public_url(path)
+                    setattr(app, field_name, public_url)
+
+            app.save()
+
+            return render(request, "apply_staff.html", {
+                "submitted": True,
+                "application": app,
+            })
+
+        else:
+            return render(request, "apply_staff.html", {
+                "form": form,
+                "application": application,
+                "error": "Please check your form fields and try again.",
+            })
+
+    else:
+        form = StaffApplicationForm(instance=application)
+
+    return render(request, "apply_staff.html", {
+        "form": form,
+        "application": application,
+    })
 

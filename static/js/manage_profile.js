@@ -11,18 +11,64 @@ document.addEventListener("DOMContentLoaded", () => {
   const csrf = document.querySelector("[name=csrfmiddlewaretoken]").value;
   const originalSrc = avatarPreview ? avatarPreview.src : null;
 
+  // Store original form data (trimmed)
+  const initialData = {};
+  form.querySelectorAll("input, textarea, select").forEach((el) => {
+    initialData[el.name] = (el.value || "").trim();
+  });
+
+  // Initially disable Save button
+  saveBtn.disabled = true;
+  saveBtn.classList.add("btn-disabled");
+
+  // Track changes on all inputs
+  form.addEventListener("input", checkFormChanges);
+  avatarInput?.addEventListener("change", checkFormChanges);
+  avatarReset?.addEventListener("click", checkFormChanges);
+  avatarRemove?.addEventListener("click", checkFormChanges);
+
+  function checkFormChanges() {
+    let changed = false;
+
+    form.querySelectorAll("input, textarea, select").forEach((el) => {
+      const original = (initialData[el.name] || "").trim();
+      const current = (el.value || "").trim();
+      if (original !== current) changed = true;
+    });
+
+    // Avatar changes count too
+    if (
+      avatarPreview.dataset.modified === "true" ||
+      avatarPreview.dataset.removed === "true" ||
+      avatarPreview.src !== originalSrc
+    ) {
+      changed = true;
+    }
+
+    toggleSaveButton(changed);
+  }
+
+  function toggleSaveButton(state) {
+    if (state) {
+      saveBtn.disabled = false;
+      saveBtn.classList.remove("btn-disabled");
+      saveBtn.classList.add("btn-active");
+    } else {
+      saveBtn.disabled = true;
+      saveBtn.classList.add("btn-disabled");
+      saveBtn.classList.remove("btn-active");
+    }
+  }
+
   // Image Preview
   avatarInput?.addEventListener("change", (e) => {
     const file = e.target.files?.[0];
-    if (
-      file &&
-      /^image\/(png|jpe?g)$/i.test(file.type) &&
-      file.size <= 5 * 1024 * 1024
-    ) {
+    if (file && /^image\/(png|jpe?g)$/i.test(file.type) && file.size <= 5 * 1024 * 1024) {
       const reader = new FileReader();
       reader.onload = (ev) => {
         avatarPreview.src = ev.target.result;
         avatarPreview.dataset.modified = "true";
+        checkFormChanges();
         toast("Image preview loaded", "success");
       };
       reader.readAsDataURL(file);
@@ -32,13 +78,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Reset to previous photo
+  // Reset photo
   avatarReset?.addEventListener("click", (e) => {
     e.preventDefault();
     avatarPreview.src = originalSrc;
     delete avatarPreview.dataset.modified;
     delete avatarPreview.dataset.removed;
     avatarInput.value = "";
+    checkFormChanges();
     toast("Photo reset to original", "success");
   });
 
@@ -51,10 +98,11 @@ document.addEventListener("DOMContentLoaded", () => {
     avatarPreview.dataset.removed = "true";
     delete avatarPreview.dataset.modified;
     avatarInput.value = "";
+    checkFormChanges();
     toast("Photo removed (will update on save)", "success");
   });
 
-  // Show confirmation modal
+  // Show modal on submit
   form?.addEventListener("submit", (e) => {
     e.preventDefault();
     modal.classList.add("active");
@@ -85,21 +133,16 @@ document.addEventListener("DOMContentLoaded", () => {
         body: formData,
       });
 
-      // Try to parse JSON if available, otherwise fallback to redirect
       let data = {};
       try {
         data = await res.json();
-      } catch {
-        // ignore JSON error
-      }
+      } catch {}
 
       if (res.ok) {
         showSuccessPopup("Profile Updated Successfully!");
         setTimeout(() => (window.location.href = "/profile/"), 1500);
       } else {
-        const msg =
-          data.message || "⚠️ Update failed. Please try again.";
-        toast(msg, "error");
+        toast(data.message || "⚠️ Update failed. Please try again.", "error");
       }
     } catch (err) {
       console.error("Update error:", err);
@@ -111,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Toast helper
+  // Toast and success helpers
   function toast(msg, type = "info") {
     const el = document.createElement("div");
     el.className = `toast ${type}`;
@@ -124,7 +167,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 3000);
   }
 
-  // Success popup
   function showSuccessPopup(msg) {
     const popup = document.createElement("div");
     popup.className = "success-popup";
@@ -137,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 1500);
   }
 
-  // Close modal when clicking outside
+
   modal?.addEventListener("click", (e) => {
     if (e.target === modal) modal.classList.remove("active");
   });

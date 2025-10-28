@@ -5,35 +5,174 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>StudyHive</title>
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Nunito+Sans:wght@400;700&display=swap" rel="stylesheet">
-
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   {% load static %}
 
-  <!-- Base CSS (Tailwind + global styles) -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Block for page-specific CSS -->
-  {% block styles %}{% endblock %}
+  {% block styles %}
+  <style>
+    /* --- Pop-up Message Modal --- */
+    .popup-container-hidden {
+      /* Hidden by default, shown by JS */
+      display: none; 
+      
+      /* Full-screen overlay */
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      
+      /* Glassmorphism backdrop (Tailwind 'bg-black/60 backdrop-blur-sm') */
+      background-color: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      
+      /* Centering (Tailwind 'flex items-center justify-center') */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #popup-message-box {
+      /* (Tailwind 'bg-neutral-900 border border-neutral-700 rounded-xl p-8 shadow-2xl') */
+      background: #171717; 
+      border: 1px solid #404040;
+      border-radius: 15px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      text-align: center;
+    }
+
+    #popup-message-content {
+      /* (Tailwind 'text-lg mb-6') */
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Style messages inside the popup */
+    #popup-message-content .message {
+      padding: 0.5rem 0;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    /* Add icons */
+    #popup-message-content .message.success::before {
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      content: "\f00c"; /* check icon */
+    }
+    #popup-message-content .message.error::before {
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      content: "\f071"; /* warning icon */
+    }
+
+    /* Colors (matching your Tailwind theme) */
+    #popup-message-content .message.success {
+      color: #34d399; /* emerald-400 */
+    }
+    #popup-message-content .message.error {
+      color: #ef4444; /* red-500 */
+    }
+    #popup-message-content .message.info {
+      color: #3b82f6; /* blue-500 */
+    }
+
+    .popup-btn {
+      /* (Tailwind 'px-5 py-2.5 rounded-lg font-semibold bg-emerald-400 text-neutral-900') */
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      background-color: #34d399;
+      color: #171717;
+      transition: all 0.3s ease;
+    }
+    .popup-btn:hover {
+      transform: scale(1.05);
+    }
+  </style>
+  {% endblock %}
 </head>
 
 <body class="min-h-screen bg-neutral-950 text-neutral-100">
-  {% if messages %}
-    <div class="max-w-xl mx-auto mt-4 space-y-2">
-      {% for m in messages %}
-        <div class="rounded-md px-4 py-2 text-sm
-          {% if m.tags == 'success' %} bg-emerald-900/40 border border-emerald-700 
-          {% elif m.tags == 'error' %} bg-red-900/40 border border-red-700 
-          {% else %} bg-neutral-800 border border-neutral-700 {% endif %}">
-          {{ m }}
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
 
   {% block content %}{% endblock %}
+
+  {% if messages %}
+  <script id="popup-messages" type="application/json">
+    [
+      {% for message in messages %}
+        {
+          "message": "{{ message.message|escapejs }}",
+          "tags": "{{ message.tags }}"
+        }
+        {% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  </script>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('popup-message-container');
+    const contentBox = document.getElementById('popup-message-content');
+    const closeBtn = document.getElementById('popup-close-btn');
+
+    // Find the JSON data script tag
+    const messagesDataElement = document.getElementById('popup-messages');
+    let messageHtml = '';
+
+    if (messagesDataElement) {
+      // Parse the JSON data from the tag
+      const messages = JSON.parse(messagesDataElement.textContent);
+
+      // Loop through the messages using a normal JavaScript loop
+      for (const message of messages) {
+        // 'message.tags' and 'message.message' come from the JSON
+        messageHtml += `<div class="message ${message.tags}">${message.message}</div>`;
+      }
+
+      // If there are messages, inject them and show the modal
+      if (messageHtml) {
+        contentBox.innerHTML = messageHtml;
+        container.style.display = 'flex'; // Show the modal
+      }
+    }
+
+    // Close the modal when the button is clicked
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        container.style.display = 'none';
+      });
+    }
+    
+    // Close the modal if clicking outside the box
+    if (container) {
+      container.addEventListener('click', (e) => {
+        if (e.target === container) {
+          container.style.display = 'none';
+        }
+      });
+    }
+  });
+  </script>
+  {% endif %}
+
 </body>
 </html>

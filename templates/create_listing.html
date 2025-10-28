@@ -4,85 +4,82 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Add New Listing | Study-Hive</title>
+  <title>Add New Listing | StudyHive</title>
 
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Nunito+Sans:wght@400;700&display=swap" rel="stylesheet">
   
-  <!-- Font Awesome -->
   <script src="https://kit.fontawesome.com/a2d9d5c6b2.js" crossorigin="anonymous"></script>
 
-  <!-- CSS -->
   <link rel="stylesheet" href="{% static 'css/create_listings.css' %}">
 </head>
 
 <body>
   <div class="create-page">
-    <!-- Background Decorations -->
-    <div class="bg-decoration">
-      <div class="circle circle-1"></div>
-      <div class="circle circle-2"></div>
-      <div class="circle circle-3"></div>
-    </div>
-
-    <!-- Header -->
+    
     <header class="header-bar">
-      <a href="{% url 'core:listings' %}" class="back-button" aria-label="Back to Listings">
+      <a href="{% url 'core:home' %}" class="logo">
+        <span class="brand-study">Study</span><span class="brand-hive">Hive</span>
+      </a>
+      <a href="{% url 'core:home' %}" class="back-button" aria-label="Back to Listings">
         <i class="fas fa-arrow-left"></i> <span>Back to Listings</span>
       </a>
-      <h1 class="page-title"><i class="fas fa-plus-circle"></i> Create New Listing</h1>
     </header>
 
-    <!-- Form Section -->
     <main class="form-container">
       <form method="POST" enctype="multipart/form-data" class="listing-form">
         {% csrf_token %}
 
-        <!-- Name -->
+        <h1 class="page-title"><i class="fas fa-plus-circle"></i> Create New Listing</h1>
+
         <div class="form-group">
           <label for="name"><i class="fas fa-map-marker-alt"></i> Study Space Name</label>
           <input type="text" id="name" name="name" placeholder="e.g., Workplace Café, Rizal Library" required>
         </div>
 
-        <!-- Location -->
         <div class="form-group">
           <label for="location"><i class="fas fa-location-arrow"></i> Location</label>
           <input type="text" id="location" name="location" placeholder="Enter exact address or area" required>
         </div>
 
-        <!-- Description -->
         <div class="form-group">
           <label for="description"><i class="fas fa-info-circle"></i> Description</label>
-          <textarea id="description" name="description" rows="4" placeholder="Describe the study space..." required></textarea>
+          <textarea id="description" name="description" rows="4" placeholder="Describe the vibe, noise level, and best features..." required></textarea>
         </div>
 
-        <!-- Amenities -->
         <div class="form-group">
-          <label><i class="fas fa-wifi"></i> Amenities</label>
-          <div class="checkbox-group">
-            <label><input type="checkbox" name="wifi"> Free Wi-Fi</label>
-            <label><input type="checkbox" name="ac"> Air-conditioned</label>
-            <label><input type="checkbox" name="free"> Free Entry</label>
-            <label><input type="checkbox" name="coffee"> Café / Drinks</label>
+          <label><i class="fas fa-wifi"></i> Amenities (Select all that apply)</label>
+          <div class="chip-group">
+            <input type="checkbox" id="wifi" name="wifi">
+            <label for="wifi">Free Wi-Fi</label>
+
+            <input type="checkbox" id="ac" name="ac">
+            <label for="ac">Air-conditioned</label>
+            
+            <input type="checkbox" id="free" name="free">
+            <label for="free">Free Entry</label>
+            
+            <input type="checkbox" id="coffee" name="coffee">
+            <label for="coffee">Café / Drinks</label>
           </div>
         </div>
 
-        <!-- Upload Image -->
         <div class="form-group">
-          <label for="image"><i class="fas fa-image"></i> Upload Image</label>
-          <input type="file" id="image" name="image" accept="image/*">
+          <label for="image-upload" class="file-upload-label">
+            <i class="fas fa-image"></i> 
+            <span>Upload Space Image</span>
+          </label>
+          <input type="file" id="image-upload" name="image" accept="image/*" required>
+          <div id="image-preview-container"></div>
         </div>
 
-        <!-- Submit -->
         <div class="form-actions">
+          <a href="{% url 'core:home' %}" class="cancel-btn">Cancel</a>
           <button type="submit" class="submit-btn"><i class="fas fa-save"></i> Save Listing</button>
-          <a href="{% url 'core:listings' %}" class="cancel-btn">Cancel</a>
         </div>
       </form>
     </main>
   </div>
 
-  <!-- External JS -->
   <script src="{% static 'js/create_listing.js' %}"></script>
 </body>
 </html>
