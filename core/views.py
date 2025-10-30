@@ -15,12 +15,14 @@ from .forms import StaffApplicationForm
 from .forms import StudySpotForm
 
 
-def staff_required(view_func):
+def contributor_required(view_func):
+    @login_required
     def wrapper(request, *args, **kwargs):
-        if not request.user.is_staff:
-            raise PermissionDenied  # Returns a 403 Forbidden page
+        profile = getattr(request.user, "userprofile", None)
+        if not profile or not profile.is_contributor:
+            raise PermissionDenied("You are not authorized to access this page.")
         return view_func(request, *args, **kwargs)
-    return login_required(wrapper)
+    return wrapper
 
 def login_view(request):
 
@@ -46,9 +48,10 @@ def login_view(request):
 def home(request):
     study_spaces = StudySpot.objects.all()
     show_staff_popup = False 
-    if request.user.is_staff and request.session.get('show_staff_congrats'):
-        show_staff_popup = True 
-        del request.session['show_staff_congrats'] 
+    profile = getattr(request.user, "userprofile", None)
+    if profile and profile.is_contributor and request.session.get('show_contributor_congrats'):
+        show_staff_popup = True
+        del request.session['show_contributor_congrats']
 
     context = {
         'study_spaces': study_spaces,
@@ -159,7 +162,7 @@ def map_view(request):
     return render(request, "map_view.html")
 
 
-@staff_required
+@contributor_required
 def create_listing(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -191,14 +194,14 @@ def create_listing(request):
 
     return render(request, 'create_listing.html')
 
-@staff_required
+@contributor_required
 def my_listings_view(request):
     my_listings = StudySpot.objects.filter(owner=request.user).order_by('-id')
     return render(request, 'my_listings.html', {'my_listings': my_listings})
 
 
 
-@staff_required
+@contributor_required
 def edit_listing(request, id):
     spot = get_object_or_404(StudySpot, id=id)
 
@@ -220,7 +223,7 @@ def edit_listing(request, id):
     # Pass the form and spot to the template
     return render(request, 'edit_listing.html', {'form': form, 'spot': spot})
 
-@staff_required
+@contributor_required
 def delete_listing(request, id):
     spot = get_object_or_404(StudySpot, id=id)
 
