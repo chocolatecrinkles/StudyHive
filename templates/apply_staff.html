@@ -14,13 +14,13 @@
 <div class="apply-container">
   <h1>
     {% if application and application.status == "Rejected" %}
-      Reapply as StudyHive Staff
+      Reapply as a StudyHive Contributor
     {% elif application and application.status == "Pending" %}
       Application Pending Review
     {% elif application and application.status == "Approved" %}
-      You're Already Staff
+      You're Already a Contributor
     {% else %}
-      Apply to Become StudyHive Staff
+      Apply to Become a StudyHive Contributor
     {% endif %}
   </h1>
 
@@ -46,7 +46,7 @@
         {% if application.status == "Pending" %}
           Your application is currently under review.
         {% elif application.status == "Approved" %}
-          You are already approved as StudyHive staff.
+          You are already approved as a StudyHive Contributor.
         {% else %}
           Your application was rejected. You may reapply below.
         {% endif %}

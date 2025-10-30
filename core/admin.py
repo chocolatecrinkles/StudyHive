@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import StaffApplication
+from .models import UserProfile
 
 @admin.register(StaffApplication)
 class StaffApplicationAdmin(admin.ModelAdmin):
@@ -350,3 +351,10 @@ def approve_staff_application(request, application_id): # Make sure 'request' is
     
     # Redirect or return response
     # ...
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'is_contributor', 'phone_number', 'full_name')
+    list_filter = ('is_contributor',)
+    search_fields = ('user__username', 'user__email', 'full_name')
