@@ -14,6 +14,38 @@ COMMON_INPUT_CLASSES = (
 LABEL_CLASSES = (
     "block text-sm font-[Nunito_Sans] font-bold text-[#4B4B4B] tracking-wide mb-1 capitalize"
 )
+class StudySpotForm(forms.ModelForm):
+    class Meta:
+        model = StudySpot
+        fields = [
+            'name',
+            'location',
+            'description',
+            'image',
+            'wifi',
+            'open_24_7',
+            'outlets',
+            'coffee',
+            'ac',
+            'pastries',
+        ]
+
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Workplace Café, Rizal Library'}),
+            'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter exact address or area'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Describe the vibe, noise level, and best features...'}),
+            'image': forms.FileInput(attrs={'class': 'form-control'}),
+            'wifi': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'open_24_7': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'outlets': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'coffee': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'ac': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'pastries': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+
+
+
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(
@@ -99,14 +131,4 @@ class StaffApplicationForm(forms.ModelForm):
         }
 
 
-
-class StudySpotForm(forms.ModelForm):
-    class Meta:
-        model = StudySpot
-        # List all fields the user can edit
-        fields = [
-            'name', 'location', 'description', 
-            'wifi', 'ac', 'free', 'coffee', 
-            'rating', 'image'
-        ]
-        # 'owner' is left out on purpose
+       

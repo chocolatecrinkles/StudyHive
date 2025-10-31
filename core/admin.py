@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import StaffApplication
 from .models import UserProfile
+from .models import StudySpot
 
 @admin.register(StaffApplication)
 class StaffApplicationAdmin(admin.ModelAdmin):
@@ -23,6 +24,24 @@ class StaffApplicationAdmin(admin.ModelAdmin):
         }),
         ("Status", {'fields': ('status',)})
     )
+
+@admin.register(StudySpot)
+class StudySpotAdmin(admin.ModelAdmin):
+    list_display = (
+        "name", "owner", "wifi", "open_24_7", "outlets", "coffee", "ac", "pastries", "rating"
+    )
+    list_filter = ("wifi", "open_24_7", "outlets", "coffee", "ac", "pastries")
+    search_fields = ("name", "location", "description")
+    fieldsets = (
+        (None, {
+            "fields": ("owner", "name", "location", "description", "image", "rating")
+        }),
+        ("Amenities", {
+            "fields": ("wifi", "open_24_7", "outlets", "coffee", "ac", "pastries")
+        }),
+    )
+
+
 
     actions = ['approve_applications', 'reject_applications']
 

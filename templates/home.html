@@ -110,11 +110,21 @@
         </h1>
         <p class="hero-text">Find the perfect environment to learn, work, and grow. From cozy cafés to modern coworking spaces near CIT-U.</p>
         
-        <div class="hero-search">
-          <i class="fas fa-search"></i>
-          <input type="text" id="mainSearch" placeholder="Search cafés, libraries, coworking spaces...">
-          <button class="search-btn">Search</button>
-        </div>
+        <form method="get" action="{% url 'core:home' %}" class="hero-search">
+      <i class="fas fa-search"></i>
+      <input
+        type="text"
+        name="q"
+        id="mainSearch"
+        value="{{ query }}"
+        placeholder="Search cafés, libraries, coworking spaces..."
+      >
+      <button type="submit" class="search-btn">Search</button>
+        </form>
+
+
+
+
 
         <div class="hero-stats">
           <div class="stat-item">
@@ -230,12 +240,15 @@
         </div>
         
         <div class="filter-tags">
-          <button class="tag active" data-filter="all">All Spots</button>
-          <button class="tag" data-filter="wifi"><i class="fas fa-wifi"></i> WiFi</button>
-          <button class="tag" data-filter="free"><i class="fas fa-tag"></i> Free</button>
-          <button class="tag" data-filter="ac"><i class="fas fa-snowflake"></i> AC</button>
-          <button class="tag" data-filter="24/7"><i class="fas fa-clock"></i> 24/7</button>
-        </div>
+  <button class="tag active" data-filter="all">All Spots</button>
+  <button class="tag" data-filter="wifi"><i class="fas fa-wifi"></i> WiFi</button>
+  <button class="tag" data-filter="outlets"><i class="fas fa-plug"></i> Power Outlet</button>
+  <button class="tag" data-filter="coffee"><i class="fas fa-mug-hot"></i> Café / Drinks</button>
+  <button class="tag" data-filter="pastries"><i class="fas fa-bread-slice"></i> Pastries</button>
+  <button class="tag" data-filter="ac"><i class="fas fa-snowflake"></i> AC</button>
+  <button class="tag" data-filter="open24"><i class="fas fa-clock"></i> 24/7</button>
+</div>
+
 
         <div class="view-options">
           <button class="view-opt active" data-view="grid" title="Grid View">
@@ -280,10 +293,26 @@
             <p class="card-desc">{{ spot.description|truncatewords:12 }}</p>
             
             <div class="card-amenities">
-              <span class="amenity"><i class="fas fa-wifi"></i></span>
-              <span class="amenity"><i class="fas fa-plug"></i></span>
-              <span class="amenity"><i class="fas fa-snowflake"></i></span>
-            </div>
+            {% if spot.wifi %}
+              <span class="amenity" title="Free Wi-Fi"><i class="fas fa-wifi"></i></span>
+            {% endif %}
+            {% if spot.open_24_7 %}
+              <span class="amenity" title="Open 24/7"><i class="fas fa-clock"></i></span>
+            {% endif %}
+            {% if spot.outlets %}
+              <span class="amenity" title="Power Outlets"><i class="fas fa-plug"></i></span>
+            {% endif %}
+            {% if spot.coffee %}
+              <span class="amenity" title="Café / Drinks"><i class="fas fa-mug-hot"></i></span>
+            {% endif %}
+            {% if spot.ac %}
+              <span class="amenity" title="Air-conditioned"><i class="fas fa-snowflake"></i></span>
+            {% endif %}
+            {% if spot.pastries %}
+              <span class="amenity" title="Pastries"><i class="fas fa-bread-slice"></i></span>
+            {% endif %}
+          </div>
+
             
             {% if user == spot.owner %}
               <div class="card-controls">

@@ -13,7 +13,7 @@ from supabase import create_client
 from dotenv import load_dotenv
 from .forms import StaffApplicationForm
 from .forms import StudySpotForm
-
+from django.db.models import Q
 
 def contributor_required(view_func):
     @login_required
@@ -46,18 +46,40 @@ def login_view(request):
 
 @login_required(login_url="core:login")
 def home(request):
+    query = request.GET.get("q", "").strip()
+    filter_by = request.GET.get("filter", "all")
+
     study_spaces = StudySpot.objects.all()
-    show_staff_popup = False 
-    profile = getattr(request.user, "userprofile", None)
-    if profile and profile.is_contributor and request.session.get('show_contributor_congrats'):
-        show_staff_popup = True
-        del request.session['show_contributor_congrats']
+
+    # 🔎 Apply search (name, location, description)
+    if query:
+        study_spaces = study_spaces.filter(
+            Q(name__icontains=query) |
+            Q(location__icontains=query) |
+            Q(description__icontains=query)
+        )
+
+    # 🧭 Apply filters (wifi, ac, coffee, etc.)
+    if filter_by == "wifi":
+        study_spaces = study_spaces.filter(wifi=True)
+    elif filter_by == "ac":
+        study_spaces = study_spaces.filter(ac=True)
+    elif filter_by == "outlets":
+        study_spaces = study_spaces.filter(outlets=True)
+    elif filter_by == "coffee":
+        study_spaces = study_spaces.filter(coffee=True)
+    elif filter_by == "pastries":
+        study_spaces = study_spaces.filter(pastries=True)
+    elif filter_by == "open24":
+        study_spaces = study_spaces.filter(open_24_7=True)
 
     context = {
-        'study_spaces': study_spaces,
-        'show_staff_popup': show_staff_popup
+        "study_spaces": study_spaces,
+        "query": query,
+        "filter_by": filter_by,
     }
-    return render(request, 'home.html', context)
+    return render(request, "home.html", context)
+
 
 
 def logout_view(request):
@@ -159,7 +181,29 @@ def manage_profile(request):
 
 @login_required(login_url="core:login")
 def map_view(request):
-    return render(request, "map_view.html")
+    query = request.GET.get("q", "")
+    filter_by = request.GET.get("filter", "all")
+
+    study_spots = StudySpot.objects.all()
+
+    if query:
+        study_spots = study_spots.filter(
+            Q(name__icontains=query) |
+            Q(location__icontains=query) |
+            Q(description__icontains=query)
+        )
+
+    if filter_by == "wifi":
+        study_spots = study_spots.filter(wifi=True)
+    elif filter_by == "ac":
+        study_spots = study_spots.filter(ac=True)
+    elif filter_by == "coffee":
+        study_spots = study_spots.filter(coffee=True)
+    elif filter_by == "open24":
+        study_spots = study_spots.filter(open_24_7=True)
+
+    return render(request, "map_view.html", {"study_spots": study_spots})
+
 
 
 @contributor_required
@@ -202,26 +246,19 @@ def my_listings_view(request):
 
 
 @contributor_required
-def edit_listing(request, id):
-    spot = get_object_or_404(StudySpot, id=id)
-
-    # --- CRITICAL SECURITY CHECK ---
-    if spot.owner != request.user:
-        messages.error(request, "You are not authorized to edit this listing.")
-        return redirect('core:my_listings')
-    # --- END OF CHECK ---
-
-    if request.method == 'POST':
+def edit_listing(request, spot_id):
+    spot = get_object_or_404(StudySpot, id=spot_id)
+    if request.method == "POST":
         form = StudySpotForm(request.POST, request.FILES, instance=spot)
         if form.is_valid():
-            form.save() 
-            messages.success(request, "Listing updated successfully.")
+            form.save()
             return redirect('core:my_listings')
     else:
-        form = StudySpotForm(instance=spot) 
+        form = StudySpotForm(instance=spot)
 
-    # Pass the form and spot to the template
     return render(request, 'edit_listing.html', {'form': form, 'spot': spot})
+
+
 
 @contributor_required
 def delete_listing(request, id):

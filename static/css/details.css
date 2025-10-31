@@ -1,0 +1,98 @@
+body {
+  font-family: 'Nunito Sans', sans-serif;
+  background: linear-gradient(to bottom right, #d5f0d0, #e7f8e2);
+  margin: 0;
+  color: #333;
+}
+
+.details-page {
+  max-width: 1000px;
+  margin: 2rem auto;
+  background: #fff;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.back-button {
+  text-decoration: none;
+  color: #2f855a;
+  font-weight: 600;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  color: #2f855a;
+}
+
+.spot-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.spot-image-container {
+  flex: 1 1 40%;
+}
+
+.spot-image {
+  width: 100%;
+  border-radius: 15px;
+  object-fit: cover;
+}
+
+.spot-info {
+  flex: 1 1 55%;
+}
+
+.spot-name {
+  font-size: 2rem;
+  color: #1a202c;
+  margin: 0;
+}
+
+.spot-location {
+  color: #4a5568;
+  margin-bottom: 1rem;
+}
+
+.spot-rating i {
+  color: #f6ad55;
+}
+
+.spot-description {
+  line-height: 1.6;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+}
+
+.spot-amenities ul {
+  list-style: none;
+  padding: 0;
+}
+
+.spot-amenities li {
+  margin: 0.3rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reviews-section {
+  border-top: 1px solid #ddd;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  text-align: center;
+}
+
+.coming-soon {
+  color: #718096;
+  font-style: italic;
+}

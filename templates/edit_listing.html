@@ -59,6 +59,32 @@
         <input type="file" name="image" id="image">
       </div>
 
+<div class="form-group">
+  <label><i class="fas fa-wifi"></i> Amenities</label>
+  <div class="chip-group">
+    <input type="checkbox" id="wifi" name="wifi" {% if form.instance.wifi %}checked{% endif %}>
+    <label for="wifi">Free Wi-Fi</label>
+
+    <input type="checkbox" id="open_24_7" name="open_24_7" {% if form.instance.open_24_7 %}checked{% endif %}>
+    <label for="open_24_7">Open 24/7</label>
+
+    <input type="checkbox" id="outlets" name="outlets" {% if form.instance.outlets %}checked{% endif %}>
+    <label for="outlets">Power Outlets</label>
+
+    <input type="checkbox" id="coffee" name="coffee" {% if form.instance.coffee %}checked{% endif %}>
+    <label for="coffee">Café / Drinks</label>
+
+    <input type="checkbox" id="ac" name="ac" {% if form.instance.ac %}checked{% endif %}>
+    <label for="ac">Air-conditioned</label>
+
+    <input type="checkbox" id="pastries" name="pastries" {% if form.instance.pastries %}checked{% endif %}>
+    <label for="pastries">Pastries</label>
+  </div>
+</div>
+
+
+
+
       <div class="form-actions">
         <button type="submit" class="btn-save">
           <i class="fas fa-save"></i> Save Changes
