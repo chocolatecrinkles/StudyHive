@@ -333,3 +333,7 @@ def apply_staff(request):
         "application": application,
     })
 
+def studyspot_detail(request, spot_id):
+    """Public view for a single study spot"""
+    spot = get_object_or_404(StudySpot, id=spot_id)
+    return render(request, 'studyspot_detail.html', {'spot': spot})

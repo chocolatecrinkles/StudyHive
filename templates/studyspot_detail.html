@@ -1,0 +1,122 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ spot.name }} | StudyHive</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Nunito+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a2d9d5c6b2.js" crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="{% static 'css/listings_shared.css' %}">
+  <style>
+    body {
+      background-color: #203730;
+      font-family: 'Poppins', sans-serif;
+      color: #dceedd;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .detail-container {
+      background-color: #294a41;
+      padding: 2rem;
+      border-radius: 16px;
+      max-width: 700px;
+      width: 100%;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .detail-container img {
+      width: 100%;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      color: #b1ffad;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .location {
+      text-align: center;
+      color: #a9e8a5;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .description {
+      text-align: center;
+      color: #dceedd;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .amenities {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.6rem;
+      margin-bottom: 2rem;
+    }
+
+    .amenity {
+      background-color: #3b5c52;
+      color: #b1ffad;
+      padding: 0.5rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .back-btn {
+      display: inline-block;
+      text-decoration: none;
+      background-color: #1b322b;
+      border: 1px solid #b1ffad;
+      color: #b1ffad;
+      padding: 0.6rem 1.4rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+
+    .back-btn:hover {
+      background-color: #2c4a3f;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="detail-container">
+    {% if spot.image %}
+      <img src="{{ spot.image.url }}" alt="{{ spot.name }}">
+    {% endif %}
+
+    <h1>{{ spot.name }}</h1>
+    <p class="location"><i class="fas fa-location-dot"></i> {{ spot.location }}</p>
+    <p class="description">{{ spot.description }}</p>
+
+    <div class="amenities">
+      {% if spot.wifi %}<div class="amenity"><i class="fas fa-wifi"></i> Wi-Fi</div>{% endif %}
+      {% if spot.open_24_7 %}<div class="amenity"><i class="fas fa-clock"></i> 24/7</div>{% endif %}
+      {% if spot.outlets %}<div class="amenity"><i class="fas fa-plug"></i> Power</div>{% endif %}
+      {% if spot.coffee %}<div class="amenity"><i class="fas fa-mug-hot"></i> Café</div>{% endif %}
+      {% if spot.ac %}<div class="amenity"><i class="fas fa-snowflake"></i> Aircon</div>{% endif %}
+      {% if spot.pastries %}<div class="amenity"><i class="fas fa-cookie"></i> Pastries</div>{% endif %}
+    </div>
+
+    <div style="text-align:center;">
+      <a href="{% url 'core:home' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Explore</a>
+    </div>
+  </div>
+</body>
+</html>
