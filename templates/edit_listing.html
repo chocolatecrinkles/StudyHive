@@ -6,182 +6,84 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edit Listing | StudyHive</title>
 
-  <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Nunito+Sans:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'css/listings.css' %}">
+  <script src="https://kit.fontawesome.com/a2d9d5c6b2.js" crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="{% static 'css/listings_shared.css' %}">
 </head>
 
-<body>
-  <div class="create-page">
-    <!-- Animated Background -->
-    <div class="bg-decoration">
-      <div class="circle circle-1"></div>
-      <div class="circle circle-2"></div>
-      <div class="circle circle-3"></div>
-    </div>
+<body style="background-color: #203730; font-family: 'Poppins', sans-serif; color: #dceedd;">
+  <div class="listing-page">
 
-    <!-- Header -->
-    <header class="form-header">
-      <a href="{% url 'core:my_listings' %}" class="back-button">
-        <i class="fas fa-arrow-left"></i> Back to My Listings
+    <!-- Centered Header -->
+    <header class="header-bar" style="text-align: center; margin-top: 2rem;">
+      <a href="{% url 'core:home' %}" class="logo" style="font-size: 2rem; text-decoration: none; color: #b1ffad;">
+        <span class="brand-study">Study</span><span class="brand-hive">Hive</span>
       </a>
-      <h1 class="form-title"><i class="fas fa-pen"></i> Edit Listing</h1>
+      <p style="margin-top: 0.3rem; color: #a9e8a5; font-weight: 600;">✏️ Edit Listing</p>
+      <a href="{% url 'core:my_listings' %}" class="back-button" aria-label="Back to Listings"
+         style="display: inline-block; margin-top: 1rem; border: 1px solid #b1ffad; color: #b1ffad; padding: 0.4rem 1rem; border-radius: 8px; text-decoration: none;">
+         <i class="fas fa-arrow-left"></i> Back to My Listings
+      </a>
     </header>
 
-    <!-- Edit Form -->
-    <form method="POST" enctype="multipart/form-data" class="listing-form">
-      {% csrf_token %}
-      <div class="form-group">
-        <label for="name">Study Space Name</label>
-        <input type="text" name="name" id="name" value="{{ spot.name }}" required>
-      </div>
+    <!-- Form -->
+    <main class="listing-container" style="margin-top: 2rem;">
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
 
-      <div class="form-group">
-        <label for="location">Location</label>
-        <input type="text" name="location" id="location" value="{{ spot.location }}" required>
-      </div>
+        <div class="form-group">
+          <label for="name">Study Space Name</label>
+          <input type="text" name="name" id="name" value="{{ spot.name }}" class="form-control" required>
+        </div>
 
-      <div class="form-group">
-        <label for="description">Description</label>
-        <textarea name="description" id="description" rows="5" required>{{ spot.description }}</textarea>
-      </div>
+        <div class="form-group">
+          <label for="location">Location</label>
+          <input type="text" name="location" id="location" value="{{ spot.location }}" class="form-control" required>
+        </div>
 
-      <div class="form-group">
-        <label for="image">Image</label>
-        {% if spot.image %}
-          <div class="current-image">
-            <img src="{{ spot.image.url }}" alt="{{ spot.name }}" class="preview-image">
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea name="description" id="description" rows="4" class="form-control" required>{{ spot.description }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Image</label>
+          {% if spot.image %}
+            <img src="{{ spot.image.url }}" alt="{{ spot.name }}" style="width:100%;border-radius:8px;margin-bottom:1rem;">
+          {% endif %}
+          <input type="file" name="image" id="image" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-wifi"></i> Amenities</label>
+          <div class="chip-group">
+            <input type="checkbox" id="wifi" name="wifi" {% if spot.wifi %}checked{% endif %}>
+            <label for="wifi">Free Wi-Fi</label>
+
+            <input type="checkbox" id="open_24_7" name="open_24_7" {% if spot.open_24_7 %}checked{% endif %}>
+            <label for="open_24_7">Open 24/7</label>
+
+            <input type="checkbox" id="outlets" name="outlets" {% if spot.outlets %}checked{% endif %}>
+            <label for="outlets">Power Outlets</label>
+
+            <input type="checkbox" id="coffee" name="coffee" {% if spot.coffee %}checked{% endif %}>
+            <label for="coffee">Café / Drinks</label>
+
+            <input type="checkbox" id="ac" name="ac" {% if spot.ac %}checked{% endif %}>
+            <label for="ac">Air-conditioned</label>
+
+            <input type="checkbox" id="pastries" name="pastries" {% if spot.pastries %}checked{% endif %}>
+            <label for="pastries">Pastries</label>
           </div>
-        {% else %}
-          <p class="no-image">No image uploaded</p>
-        {% endif %}
-        <input type="file" name="image" id="image">
-      </div>
+        </div>
 
-<div class="form-group">
-  <label><i class="fas fa-wifi"></i> Amenities</label>
-  <div class="chip-group">
-    <input type="checkbox" id="wifi" name="wifi" {% if form.instance.wifi %}checked{% endif %}>
-    <label for="wifi">Free Wi-Fi</label>
-
-    <input type="checkbox" id="open_24_7" name="open_24_7" {% if form.instance.open_24_7 %}checked{% endif %}>
-    <label for="open_24_7">Open 24/7</label>
-
-    <input type="checkbox" id="outlets" name="outlets" {% if form.instance.outlets %}checked{% endif %}>
-    <label for="outlets">Power Outlets</label>
-
-    <input type="checkbox" id="coffee" name="coffee" {% if form.instance.coffee %}checked{% endif %}>
-    <label for="coffee">Café / Drinks</label>
-
-    <input type="checkbox" id="ac" name="ac" {% if form.instance.ac %}checked{% endif %}>
-    <label for="ac">Air-conditioned</label>
-
-    <input type="checkbox" id="pastries" name="pastries" {% if form.instance.pastries %}checked{% endif %}>
-    <label for="pastries">Pastries</label>
+        <div class="form-actions" style="text-align:center; margin-top:2rem;">
+          <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+          <a href="{% url 'core:my_listings' %}" class="btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </main>
   </div>
-</div>
-
-
-
-
-      <div class="form-actions">
-        <button type="submit" class="btn-save">
-          <i class="fas fa-save"></i> Save Changes
-        </button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Optional inline CSS -->
-  <style>
-    .create-page {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px 20px;
-      font-family: "Nunito Sans", sans-serif;
-    }
-
-    .form-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      max-width: 800px;
-      margin-bottom: 2rem;
-    }
-
-    .form-title {
-      font-family: "Poppins", sans-serif;
-      font-weight: 700;
-      font-size: 2rem;
-      color: #333;
-    }
-
-    .listing-form {
-      background: white;
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 800px;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .form-group label {
-      font-weight: 700;
-      display: block;
-      margin-bottom: 0.5rem;
-      color: #333;
-    }
-
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-      width: 100%;
-      padding: 0.8rem;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-size: 1rem;
-    }
-
-    .current-image {
-      margin-bottom: 1rem;
-    }
-
-    .preview-image {
-      width: 100%;
-      max-width: 300px;
-      border-radius: 10px;
-      display: block;
-    }
-
-    .btn-save {
-      background: #2e7d32;
-      color: white;
-      border: none;
-      padding: 0.8rem 2rem;
-      border-radius: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s ease;
-      font-size: 1rem;
-    }
-
-    .btn-save:hover { background: #1b5e20; }
-
-    .back-button {
-      text-decoration: none;
-      color: #555;
-      font-weight: 600;
-      transition: 0.2s;
-    }
-    .back-button:hover { color: #000; }
-  </style>
 </body>
 </html>
