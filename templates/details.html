@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ spot.name }} | StudyHive</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Nunito+Sans:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'css/details.css' %}">
+</head>
+
+<body>
+  <div class="details-page">
+    <!-- Header -->
+    <header class="details-header">
+      <a href="{% url 'core:home' %}" class="back-button">
+        <i class="fas fa-arrow-left"></i> Back to Home
+      </a>
+      <h1 class="page-title">Study Spot Details</h1>
+    </header>
+
+    <!-- Spot Info -->
+    <section class="spot-container">
+      <div class="spot-image-container">
+        {% if spot.image %}
+          <img src="{{ spot.image.url }}" alt="{{ spot.name }}" class="spot-image">
+        {% else %}
+          <img src="{% static 'imgs/placeholder.png' %}" alt="No image available" class="spot-image">
+        {% endif %}
+      </div>
+
+      <div class="spot-info">
+        <h2 class="spot-name">{{ spot.name }}</h2>
+        <p class="spot-location"><i class="fas fa-map-marker-alt"></i> {{ spot.location }}</p>
+
+        <div class="spot-rating">
+          <i class="fas fa-star"></i> 
+          <span>{{ spot.rating|default:"No Rating Yet" }}</span>
+        </div>
+
+        <p class="spot-description">{{ spot.description }}</p>
+
+        <div class="spot-amenities">
+          <h3>Amenities</h3>
+          <ul>
+            {% if spot.wifi %}<li><i class="fas fa-wifi"></i> Free WiFi</li>{% endif %}
+            {% if spot.ac %}<li><i class="fas fa-wind"></i> Air Conditioning</li>{% endif %}
+            {% if spot.free %}<li><i class="fas fa-coins"></i> Free Entry</li>{% endif %}
+            {% if spot.coffee %}<li><i class="fas fa-coffee"></i> Coffee</li>{% endif %}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reviews Section (for next sprint) -->
+    <section class="reviews-section">
+      <h3><i class="fas fa-comments"></i> User Reviews</h3>
+      <p class="coming-soon">⭐ Review system coming soon in Sprint 4 ⭐</p>
+    </section>
+  </div>
+</body>
+</html>

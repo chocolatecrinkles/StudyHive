@@ -2,6 +2,8 @@
 // SEARCH FUNCTIONALITY
 // ======================================
 
+
+
 const mainSearch = document.getElementById('mainSearch');
 const spotCards = document.querySelectorAll('.spot-card');
 
@@ -71,57 +73,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+// ======================================
+// FILTER BUTTON BACKEND LINKING
+// ======================================
 
+document.addEventListener("DOMContentLoaded", function () {
+  const tags = document.querySelectorAll(".filter-tags .tag");
 
-const filterTags = document.querySelectorAll('.tag');
+  tags.forEach(tag => {
+    tag.addEventListener("click", () => {
+      const filter = tag.getAttribute("data-filter");
+      const baseUrl = window.location.pathname;
 
-filterTags.forEach(tag => {
-  tag.addEventListener('click', () => {
-    // Remove active class from all tags
-    filterTags.forEach(t => t.classList.remove('active'));
-    
-    // Add active class to clicked tag
-    tag.classList.add('active');
-    
-    const filter = tag.dataset.filter;
-    
-    // Filter spot cards
-    spotCards.forEach(card => {
-      const cardText = card.textContent.toLowerCase();
-      let shouldShow = false;
-      
-      switch(filter) {
-        case 'all':
-          shouldShow = true;
-          break;
-        case 'wifi':
-          shouldShow = cardText.includes('wifi') || cardText.includes('wi-fi');
-          break;
-        case 'free':
-          shouldShow = cardText.includes('free');
-          break;
-        case 'ac':
-          shouldShow = cardText.includes('ac') || cardText.includes('air con');
-          break;
-        case '24/7':
-          shouldShow = cardText.includes('24') || cardText.includes('24/7');
-          break;
-      }
-      
-      if (shouldShow) {
-        card.style.display = 'block';
-        setTimeout(() => {
-          card.style.opacity = '1';
-          card.style.transform = 'scale(1)';
-        }, 10);
+      if (filter === "all") {
+        window.location.href = baseUrl;
       } else {
-        card.style.opacity = '0';
-        card.style.transform = 'scale(0.95)';
-        setTimeout(() => {
-          card.style.display = 'none';
-        }, 300);
+        window.location.href = `${baseUrl}?filter=${filter}`;
       }
     });
+  });
+
+  // Highlight active tag based on current ?filter param
+  const currentFilter = new URLSearchParams(window.location.search).get("filter") || "all";
+  tags.forEach(btn => {
+    if (btn.dataset.filter === currentFilter) btn.classList.add("active");
+    else btn.classList.remove("active");
   });
 });
 

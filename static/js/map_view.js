@@ -287,34 +287,34 @@ function applyFilters() {
 }
 
 // ===== Filter Chips =====
-filterChips.forEach((chip) => {
-  chip.addEventListener("click", () => {
-    filterChips.forEach((c) => c.classList.remove("active"))
-    chip.classList.add("active")
-    const filter = chip.dataset.filter
+// filterChips.forEach((chip) => {
+//   chip.addEventListener("click", () => {
+//     filterChips.forEach((c) => c.classList.remove("active"))
+//     chip.classList.add("active")
+//     const filter = chip.dataset.filter
 
-    spotCards.forEach((card) => {
-      const spotId = card.dataset.spotId
-      const spot = spotsData[spotId]
-      if (!spot) {
-        card.style.display = "none"
-        return
-      }
+//     spotCards.forEach((card) => {
+//       const spotId = card.dataset.spotId
+//       const spot = spotsData[spotId]
+//       if (!spot) {
+//         card.style.display = "none"
+//         return
+//       }
 
-      let show = true
-      if (filter === "open") {
-        show = spot.status === "open"
-      } else if (filter === "24/7") {
-        show = spot.tags.includes("24 Hours")
-      } else if (filter === "free") {
-        show = spot.tags.includes("Free")
-      }
-      // "all" case is handled by `show = true`
-      card.style.display = show ? "block" : "none"
-    })
-    updateMarkerVisibility()
-  })
-})
+//       let show = true
+//       if (filter === "open") {
+//         show = spot.status === "open"
+//       } else if (filter === "24/7") {
+//         show = spot.tags.includes("24 Hours")
+//       } else if (filter === "free") {
+//         show = spot.tags.includes("Free")
+//       }
+//       // "all" case is handled by `show = true`
+//       card.style.display = show ? "block" : "none"
+//     })
+//     updateMarkerVisibility()
+//   })
+// })
 
 // ===== Marker Visibility Management =====
 function updateMarkerVisibility() {
@@ -633,3 +633,66 @@ window.addEventListener("resize", () => {
 updateMarkerVisibility()
 
 console.log("StudyHive Map View initialized")
+
+// ===== Dynamic Amenity Filter (from Django data attributes) =====
+document.addEventListener("DOMContentLoaded", function () {
+  const filterButtons = document.querySelectorAll(".filter-chip");
+  const cards = document.querySelectorAll(".spot-card");
+
+  filterButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      // Toggle active button
+      filterButtons.forEach(btn => btn.classList.remove("active"));
+      button.classList.add("active");
+
+      const filter = button.dataset.filter;
+
+      cards.forEach(card => {
+        // Reset visibility for "All"
+        if (filter === "all") {
+          card.style.display = "block";
+          return;
+        }
+
+        // Read the corresponding dataset value (True/False)
+        const hasAmenity = card.dataset[filter] === "True" || card.dataset[filter] === "true";
+        card.style.display = hasAmenity ? "block" : "none";
+      });
+    });
+  });
+});
+
+
+// ===== Smart Search Integration =====
+document.addEventListener("DOMContentLoaded", function () {
+  const searchInput = document.getElementById("searchSpot");
+  const cards = document.querySelectorAll(".spot-card");
+
+  if (!searchInput) return;
+
+  searchInput.addEventListener("input", function () {
+    const query = searchInput.value.trim().toLowerCase();
+
+    cards.forEach(card => {
+      // Read card text
+      const name = (card.querySelector("h3")?.textContent || "").toLowerCase();
+      const location = (card.querySelector(".spot-location span")?.textContent || "").toLowerCase();
+
+      // Read dataset (booleans)
+      const dataset = Object.keys(card.dataset).filter(key => card.dataset[key] === "True" || card.dataset[key] === "true");
+
+      // Check if query matches anything
+      const matchesName = name.includes(query);
+      const matchesLocation = location.includes(query);
+      const matchesAmenity = dataset.some(field => field.includes(query.replace(/[^a-z0-9]/g, "")));
+
+      // Show or hide
+      if (query === "" || matchesName || matchesLocation || matchesAmenity) {
+        card.style.display = "block";
+      } else {
+        card.style.display = "none";
+      }
+    });
+  });
+});
+

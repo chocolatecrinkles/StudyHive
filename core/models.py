@@ -25,9 +25,15 @@ class StudySpot(models.Model):
     coffee = models.BooleanField(default=False)
     rating = models.DecimalField(max_digits=3, decimal_places=1, default=0)
     image = models.ImageField(upload_to='studyspots/', blank=True, null=True)
-
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='listings')
-
+    
+    #tagged / filter??? basta inig search
+    wifi = models.BooleanField(default=False)
+    open_24_7 = models.BooleanField(default=False)
+    outlets = models.BooleanField(default=False)
+    coffee = models.BooleanField(default=False)
+    ac = models.BooleanField(default=False)
+    pastries = models.BooleanField(default=False)
     def __str__(self):
         return self.name
 

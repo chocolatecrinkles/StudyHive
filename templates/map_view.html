@@ -5,260 +5,126 @@
 <link rel="stylesheet" href="{% static 'css/map_view.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-<body>
 <nav class="navbar">
-      <div class="nav-container">
-        <div class="nav-brand">
-          <span class="brand-study">Study</span><span class="brand-hive">Hive</span>
-        </div>
+  <div class="nav-container">
+    <div class="nav-brand">
+      <span class="brand-study">Study</span><span class="brand-hive">Hive</span>
+    </div>
 
-        <ul class="nav-menu">
-          <li><a href="{% url 'core:home' %}" class="nav-link">Explore</a></li>
-          <li><a href="{% url 'core:map_view' %}" class="nav-link active">Map</a></li>
-          {% if user.is_staff %}
-            <li><a href="{% url 'core:my_listings' %}" class="nav-link">My Spots</a></li>
+    <ul class="nav-menu">
+      <li><a href="{% url 'core:home' %}" class="nav-link">Explore</a></li>
+      <li><a href="{% url 'core:map_view' %}" class="nav-link active">Map</a></li>
+      {% if user.is_staff %}
+        <li><a href="{% url 'core:my_listings' %}" class="nav-link">My Spots</a></li>
+      {% else %}
+        <li><a href="#" class="nav-link">About</a></li>
+      {% endif %}
+    </ul>
+
+    <div class="nav-right">
+      <div class="user-dropdown">
+        <button class="user-avatar" id="dropdownBtn">
+          {% if user.userprofile.avatar_url %}
+            <img src="{{ user.userprofile.avatar_url.url }}" alt="Profile">
           {% else %}
-            <li><a href="#" class="nav-link">About</a></li>
+            <img src="{% static 'imgs/avatar_placeholder.jpg' %}" alt="Profile">
           {% endif %}
+        </button>
 
-        </ul>
-
-        <div class="nav-right">
-          <div class="user-dropdown">
-            <button class="user-avatar" id="dropdownBtn">
-              {% if user.userprofile.avatar_url %}
-                <img src="{{ user.userprofile.avatar_url.url }}" alt="Profile">
-              {% else %}
-                <img src="{% static 'imgs/avatar_placeholder.jpg' %}" alt="Profile">
-              {% endif %}
-            </button>
-
-            <div class="dropdown-menu" id="userDropdown">
-              <div class="dropdown-user">
-                <img src="{% if user.userprofile.avatar_url %}{{ user.userprofile.avatar_url.url }}{% else %}{% static 'imgs/avatar_placeholder.jpg' %}{% endif %}" alt="">
-                <div>
-                  <strong>{{ user.first_name }} {{ user.last_name }}</strong><br>
-                  <small>{{ user.email }}</small>
-                </div>
-              </div>
-              <div class="dropdown-divider"></div>
-
-              {% if user.is_staff %}
-                <a href="{% url 'core:profile' %}">👤 My Profile</a>
-                <a href="{% url 'core:my_listings' %}">📍 My Listings</a>
-                <a href="{% url 'core:create_listing' %}">➕ Create Listing</a>
-                <a href="#">⚙️ Settings</a>
-              {% else %}
-                <a href="{% url 'core:profile' %}">👤 My Profile</a>
-                <a href="#">🏆 Achievements</a>
-                <a href="{% url 'core:apply_staff' %}">💼 Become Staff</a>
-                <a href="#">⚙️ Settings</a>
-              {% endif %}
-
-              <div class="dropdown-divider"></div>
-              <a href="{% url 'core:logout' %}" class="logout-link" id="logoutLink">🚪 Logout</a>
+        <div class="dropdown-menu" id="userDropdown">
+          <div class="dropdown-user">
+            <img src="{% if user.userprofile.avatar_url %}{{ user.userprofile.avatar_url.url }}{% else %}{% static 'imgs/avatar_placeholder.jpg' %}{% endif %}" alt="">
+            <div>
+              <strong>{{ user.first_name }} {{ user.last_name }}</strong><br>
+              <small>{{ user.email }}</small>
             </div>
           </div>
-          <button class="burger-btn">
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
+          <div class="dropdown-divider"></div>
+
+          {% if user.is_staff %}
+            <a href="{% url 'core:profile' %}">👤 My Profile</a>
+            <a href="{% url 'core:my_listings' %}">📍 My Listings</a>
+            <a href="{% url 'core:create_listing' %}">➕ Create Listing</a>
+          {% else %}
+            <a href="{% url 'core:profile' %}">👤 My Profile</a>
+            <a href="{% url 'core:apply_staff' %}">💼 Become Staff</a>
+          {% endif %}
+          <div class="dropdown-divider"></div>
+          <a href="{% url 'core:logout' %}" class="logout-link" id="logoutLink">🚪 Logout</a>
         </div>
       </div>
-    </nav>
+    </div>
+  </div>
+</nav>
 
 <div class="map-wrapper">
-  <aside class="map-sidebar" id="mapSidebar" role="complementary" aria-label="Study Spot List and Search">
+  <aside class="map-sidebar" id="mapSidebar">
     <div class="sidebar-header">
-      <button id="menuBtn" class="icon-btn" aria-label="Toggle Sidebar">
-        <i class="fas fa-bars"></i>
-      </button>
+      <button id="menuBtn" class="icon-btn"><i class="fas fa-bars"></i></button>
       <div class="sidebar-title">
         <h2>Study Spots</h2>
-        <p>12 locations near you</p>
+        <p>{{ study_spots|length }} locations near you</p>
       </div>
     </div>
 
     <div class="sidebar-search">
       <div class="search-box">
-        <i class="fas fa-search" aria-hidden="true"></i>
-        <input type="text" id="searchSpot" placeholder="Search study spots..." aria-label="Search study spots">
-        <button class="search-trigger-btn" id="searchTriggerBtn" aria-label="Search for study spots" title="Search">
-          <i class="fas fa-magnifying-glass"></i>
-        </button>
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchSpot" placeholder="Search study spots...">
+        <button class="search-trigger-btn" id="searchTriggerBtn"><i class="fas fa-magnifying-glass"></i></button>
       </div>
     </div>
 
-    <div class="chip-filters" role="group" aria-label="Study spot filters">
-      <button class="filter-chip active" data-filter="all">
-        <i class="fas fa-th"></i> All
-      </button>
-      <button class="filter-chip" data-filter="open">
-        <i class="fas fa-door-open"></i> Open Now
-      </button>
-      <button class="filter-chip" data-filter="24/7">
-        <i class="fas fa-clock"></i> 24/7
-      </button>
-      <button class="filter-chip" data-filter="free">
-        <i class="fas fa-hand-holding-heart"></i> Free
-      </button>
+    <div class="chip-filters">
+      <button class="filter-chip active" data-filter="all"><i class="fas fa-th"></i> All</button>
+      <button class="filter-chip" data-filter="wifi"><i class="fas fa-wifi"></i> Wi-Fi</button>
+      <button class="filter-chip" data-filter="open24"><i class="fas fa-clock"></i> 24/7</button>
+      <button class="filter-chip" data-filter="outlets"><i class="fas fa-plug"></i> Outlets</button>
+      <button class="filter-chip" data-filter="coffee"><i class="fas fa-mug-hot"></i> Coffee</button>
+      <button class="filter-chip" data-filter="ac"><i class="fas fa-snowflake"></i> AC</button>
+      <button class="filter-chip" data-filter="pastries"><i class="fas fa-bread-slice"></i> Pastries</button>
     </div>
 
-    <div class="spot-list" role="region" aria-live="polite">
-      <div class="spot-card" tabindex="0" role="button" aria-label="Produktiv study spot" data-spot-id="spot1" data-lat="35" data-lng="25">
-        <div class="spot-image">
-          <img src="{% static 'imgs/produktiv_logo.png' %}" alt="Produktiv interior">
-          <span class="status-badge open">Open</span>
-          <button class="favorite-btn" aria-label="Add to favorites">
-            <i class="far fa-heart"></i>
-          </button>
-        </div>
-        <div class="spot-content">
-          <h3>Produktiv</h3>
-          <div class="details-row">
-            <div class="rating">
-              <span>4.8</span>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star-half-alt"></i>
+    <div class="spot-list">
+      {% for spot in study_spots %}
+        <div class="spot-card"
+             data-spot-id="{{ spot.id }}"
+             data-wifi="{{ spot.wifi }}"
+             data-open24="{{ spot.open_24_7 }}"
+             data-outlets="{{ spot.outlets }}"
+             data-coffee="{{ spot.coffee }}"
+             data-ac="{{ spot.ac }}"
+             data-pastries="{{ spot.pastries }}">
+          <div class="spot-image">
+            {% if spot.image %}
+              <img src="{{ spot.image.url }}" alt="{{ spot.name }}">
+            {% else %}
+              <img src="{% static 'imgs/map_placeholder.jpg' %}" alt="Placeholder image">
+            {% endif %}
+            <span class="status-badge {% if spot.open_24_7 %}open{% else %}closed{% endif %}">
+              {% if spot.open_24_7 %}Open{% else %}Closed{% endif %}
+            </span>
+          </div>
+          <div class="spot-content">
+            <h3>{{ spot.name }}</h3>
+            <div class="spot-location">
+              <i class="fas fa-map-marker-alt"></i>
+              <span>{{ spot.location }}</span>
             </div>
-            <span class="distance">0.8 km</span>
-          </div>
-          <div class="spot-location">
-            <i class="fas fa-map-marker-alt"></i>
-            <span>123 Main St, Charlestown</span>
-          </div>
-          <div class="tags">
-            <span class="tag-item">
-              <i class="fas fa-wifi"></i> Free Wi-Fi
-            </span>
-            <span class="tag-item">
-              <i class="fas fa-mug-hot"></i> Coffee
-            </span>
-            <span class="tag-item">
-              <i class="fas fa-plug"></i> Outlets
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div class="spot-card" tabindex="0" role="button" aria-label="Workplace Café study spot" data-spot-id="spot2" data-lat="42" data-lng="35">
-        <div class="spot-image">
-          <img src="{% static 'imgs/workplacecafe_logo.jpg' %}" alt="Workplace Café interior">
-          <span class="status-badge closed">Closed</span>
-          <button class="favorite-btn" aria-label="Add to favorites">
-            <i class="far fa-heart"></i>
-          </button>
-        </div>
-        <div class="spot-content">
-          <h3>Workplace Café</h3>
-          <div class="details-row">
-            <div class="rating">
-              <span>4.7</span>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="far fa-star"></i>
+            <div class="tags">
+              {% if spot.wifi %}<span><i class="fas fa-wifi"></i> Wi-Fi</span>{% endif %}
+              {% if spot.outlets %}<span><i class="fas fa-plug"></i> Outlets</span>{% endif %}
+              {% if spot.ac %}<span><i class="fas fa-snowflake"></i> AC</span>{% endif %}
+              {% if spot.coffee %}<span><i class="fas fa-mug-hot"></i> Coffee</span>{% endif %}
+              {% if spot.pastries %}<span><i class="fas fa-bread-slice"></i> Pastries</span>{% endif %}
             </div>
-            <span class="distance">1.2 km</span>
-          </div>
-          <div class="spot-location">
-            <i class="fas fa-map-marker-alt"></i>
-            <span>456 Park Ave, Downtown</span>
-          </div>
-          <div class="tags">
-            <span class="tag-item">
-              <i class="fas fa-plug"></i> Outlets
-            </span>
-            <span class="tag-item">
-              <i class="fas fa-clock"></i> 24 Hours
-            </span>
-            <span class="tag-item">
-              <i class="fas fa-snowflake"></i> AC
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div class="spot-card" tabindex="0" role="button" aria-label="Central Library study spot" data-spot-id="spot3" data-lat="28" data-lng="45">
-        <div class="spot-image">
-          <img src="{% static 'imgs/map_placeholder.jpg' %}" alt="Central Library interior">
-          <span class="status-badge open">Open</span>
-          <button class="favorite-btn active" aria-label="Remove from favorites">
-            <i class="fas fa-heart"></i>
-          </button>
-        </div>
-        <div class="spot-content">
-          <h3>Central Library</h3>
-          <div class="details-row">
-            <div class="rating">
-              <span>4.9</span>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-            </div>
-            <span class="distance">0.5 km</span>
-          </div>
-          <div class="spot-location">
-            <i class="fas fa-map-marker-alt"></i>
-            <span>789 Library Rd, City Center</span>
-          </div>
-          <div class="tags">
-            <span class="tag-item">
-              <i class="fas fa-volume-mute"></i> Quiet
-            </span>
-            <span class="tag-item">
-              <i class="fas fa-hand-holding-heart"></i> Free
-            </span>
-            <span class="tag-item">
-              <i class="fas fa-wifi"></i> Wi-Fi
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div class="spot-card" tabindex="0" role="button" aria-label="Cozy Corner Café" data-spot-id="spot4" data-lat="55" data-lng="28">
-        <div class="spot-image">
-          <img src="{% static 'imgs/produktiv_logo.png' %}" alt="Cozy Corner interior">
-          <span class="status-badge open">Open</span>
-          <button class="favorite-btn" aria-label="Add to favorites">
-            <i class="far fa-heart"></i>
-          </button>
-        </div>
-        <div class="spot-content">
-          <h3>Cozy Corner Café</h3>
-          <div class="details-row">
-            <div class="rating">
-              <span>4.6</span>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="fas fa-star"></i>
-              <i class="far fa-star"></i>
-            </div>
-            <span class="distance">1.5 km</span>
-          </div>
-          <div class="spot-location">
-            <i class="fas fa-map-marker-alt"></i>
-            <span>321 Oak Street</span>
-          </div>
-          <div class="tags">
-            <span class="tag-item">
-              <i class="fas fa-wifi"></i> Wi-Fi
-            </span>
-            <span class="tag-item">
-              <i class="fas fa-snowflake"></i> AC
-            </span>
-          </div>
-        </div>
       </div>
     </div>
+  {% empty %}
+    <p class="no-spots">No study spots found yet.</p>
+  {% endfor %}
+</div>
+
   </aside>
 
   <main class="map-area" role="main" aria-label="Interactive Map Display">
