@@ -14,6 +14,8 @@ from dotenv import load_dotenv
 from .forms import StaffApplicationForm
 from .forms import StudySpotForm
 from django.db.models import Q
+from .models import StudySpot
+
 
 def contributor_required(view_func):
     @login_required
@@ -239,9 +241,11 @@ def create_listing(request):
     return render(request, 'create_listing.html')
 
 @contributor_required
-def my_listings_view(request):
+def my_listings(request):
     my_listings = StudySpot.objects.filter(owner=request.user).order_by('-id')
     return render(request, 'my_listings.html', {'my_listings': my_listings})
+
+
 
 
 
@@ -329,3 +333,7 @@ def apply_staff(request):
         "application": application,
     })
 
+def studyspot_detail(request, spot_id):
+    """Public view for a single study spot"""
+    spot = get_object_or_404(StudySpot, id=spot_id)
+    return render(request, 'studyspot_detail.html', {'spot': spot})

@@ -19,9 +19,12 @@ urlpatterns = [
 
     # Listings Management (for staff)
     path('create-listing/', views.create_listing, name='create_listing'),
-    path('my-listings/', views.my_listings_view, name='my_listings'),
+    path('my-listings/', views.my_listings, name='my_listings'),
     path('edit-listing/<int:spot_id>/', views.edit_listing, name='edit_listing'),
     path('delete-listing/<int:id>/', views.delete_listing, name='delete_listing'),
+    path('spot/<int:spot_id>/', views.studyspot_detail, name='studyspot_detail'),
+ 
+
 
     # Staff Application
     path('apply-staff/', views.apply_staff, name='apply_staff'),

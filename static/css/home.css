@@ -734,7 +734,7 @@ body {
 .spot-card {
   background: var(--white);
   border-radius: 20px;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: var(--shadow-sm);
   transition: all 0.3s;
   border: 2px solid transparent;
@@ -842,26 +842,77 @@ body {
   transform: translateY(-2px);
 }
 
-.card-cta {
+
+
+.card-controls {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gray);
+  margin-top: 1rem; /* ADDED: To space it from amenities */
+}
+
+/* ADDED: Ensures form inside controls behaves correctly */
+.card-controls form {
+  display: flex;
+  flex: 1;
+}
+
+.ctrl-btn {
+  flex: 1;
+  padding: 0.75rem 1rem; /* MODIFIED: Increased padding */
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 700; /* MODIFIED: Bolder text */
+  transition: all 0.2s ease-in-out;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem;
-  background: var(--green-light);
-  color: var(--dark);
   text-decoration: none;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 0.9375rem;
-  transition: all 0.2s;
+  width: 100%; /* ADDED: Ensures button fills the form */
+  color: inherit;
 }
 
-.card-cta:hover {
+/* ADDED: New 'View Details' button style */
+.ctrl-btn.view {
   background: var(--green-main);
-  color: var(--white);
+  color: var(--dark);
+}
+.ctrl-btn.view:hover {
+  background: #95c793;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.ctrl-btn.view i {
+  transition: transform 0.2s ease;
+}
+.ctrl-btn.view:hover i {
   transform: translateX(4px);
 }
+
+
+/* MODIFIED: Existing styles below are fine, but ensure they are present */
+.ctrl-btn.edit {
+  background: var(--green-light);
+  color: var(--dark);
+}
+.ctrl-btn.edit:hover {
+  background: var(--green-main);
+}
+.ctrl-btn.delete {
+  background: #FFEBEE;
+  color: #D32F2F;
+}
+.ctrl-btn.delete:hover {
+  background: #854242;
+  color: var(--white);
+}
+
+
+
 
 .card-controls {
   display: flex;
@@ -930,6 +981,91 @@ body {
   padding: 0;
   margin: 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+/* ADD THIS NEW CSS BLOCK */
+
+/* Wrapper for the default View/Settings buttons */
+.owner-controls-default {
+  display: flex;
+  width: 100%;
+  gap: 0.5rem;
+}
+.owner-controls-default .view {
+  flex-grow: 1; /* Make View Details button take available space */
+}
+
+/* Wrapper for the hidden Edit/Delete buttons */
+.owner-controls-edit {
+  display: flex;
+  width: 100%;
+  gap: 0.5rem;
+}
+.delete-form {
+  display: flex;
+  flex: 1;
+}
+
+/* Style for the new settings (cog) button */
+.ctrl-btn.cancel {
+  background: #f1f1f1;
+  color: #555;
+  flex-grow: 1.2; /* Make cancel slightly bigger */
+}
+.ctrl-btn.cancel:hover {
+  background: #e0e0e0;
+}
+
+
+
+.ctrl-btn-settings {
+  flex-shrink: 0;
+  flex-basis: 50px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1.5px solid var(--gray);
+  background: var(--white);
+  color: var(--dark);
+  transition: all 0.2s ease;
+}
+.ctrl-btn-settings:hover {
+  border-color: var(--green-main);
+  background: var(--gray-light);
+  color: var(--green-main);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* ===== CTA Section ===== */
 .cta-section {

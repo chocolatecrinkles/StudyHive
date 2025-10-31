@@ -313,24 +313,57 @@
             {% endif %}
           </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
             
+            <div class="card-controls">
             {% if user == spot.owner %}
-              <div class="card-controls">
-                <a href="{% url 'core:edit_listing' spot.id %}" class="ctrl-btn edit">
-                  <i class="fas fa-pen"></i> Edit
-                </a>
-                <form method="post" action="{% url 'core:delete_listing' spot.id %}" style="display:inline; flex: 1;">
+              <div class="owner-controls-default">
+                <a href="{% url 'core:studyspot_detail' spot.id %}" class="ctrl-btn view">View Details <i class="fas fa-arrow-right"></i></a>
+                <button class="ctrl-btn-settings" type="button" title="Manage Spot">
+                  <i class="fas fa-cog"></i>
+                </button>
+              </div>
+
+
+
+              <div class="owner-controls-edit" style="display: none;">
+                <button type="button" class="ctrl-btn cancel"><i class="fas fa-times"></i> Cancel</button>
+                <a href="{% url 'core:edit_listing' spot.id %}" class="ctrl-btn edit"><i class="fas fa-pen"></i> Edit</a>
+                <form method="post" action="{% url 'core:delete_listing' spot.id %}" class="delete-form">
                   {% csrf_token %}
-                  <button type="submit" class="ctrl-btn delete" onclick="return confirm('Delete this spot?')">
-                    <i class="fas fa-trash"></i> Delete
-                  </button>
+                  <button type="submit" class="ctrl-btn delete" onclick="return confirm('Are you sure you want to delete this spot?')"><i class="fas fa-trash"></i> Delete</button>
                 </form>
               </div>
+
+
+
+
             {% else %}
-              <a href="#" class="card-cta">
+              <a href="{% url 'core:studyspot_detail' spot.id %}" class="ctrl-btn view">
                 View Details <i class="fas fa-arrow-right"></i>
               </a>
             {% endif %}
+          </div>
+
+            
+
+
+
+
+
+
+
           </div>
         </div>
         {% endfor %}

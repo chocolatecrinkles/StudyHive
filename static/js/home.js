@@ -217,35 +217,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   });
 });
 
-// ======================================
-// CARD INTERACTIONS
-// ======================================
 
-spotCards.forEach(card => {
-  // Add hover effect for amenities
-  const amenities = card.querySelectorAll('.amenity');
-  amenities.forEach(amenity => {
-    amenity.addEventListener('mouseenter', function() {
-      this.style.transition = 'all 0.2s ease';
-    });
-  });
-  
-  // Card click handler (for view details)
-  const cardCta = card.querySelector('.card-cta');
-  if (cardCta) {
-    cardCta.addEventListener('click', (e) => {
-      e.preventDefault();
-      const spotId = card.id.replace('spot-', '');
-      console.log('Viewing details for spot:', spotId);
-      // Navigate to detail page or open modal
-      // window.location.href = `/spot/${spotId}/`;
-    });
-  }
-});
-
-// ======================================
-// SCROLL ANIMATIONS
-// ======================================
 
 const observerOptions = {
   threshold: 0.1,
@@ -445,3 +417,40 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+
+
+// ADD THIS NEW JAVASCRIPT BLOCK TO THE END OF THE FILE
+
+// ======================================
+// OWNER SPOT CONTROLS TOGGLE
+// ======================================
+document.addEventListener('DOMContentLoaded', () => {
+  const allControls = document.querySelectorAll('.card-controls');
+
+  allControls.forEach(controlsContainer => {
+    const settingsButton = controlsContainer.querySelector('.ctrl-btn-settings');
+    const cancelButton = controlsContainer.querySelector('.ctrl-btn.cancel');
+    const defaultControls = controlsContainer.querySelector('.owner-controls-default');
+    const editControls = controlsContainer.querySelector('.owner-controls-edit');
+
+    // Handle click on the settings (gear) icon
+    if (settingsButton) {
+      settingsButton.addEventListener('click', () => {
+        if (defaultControls && editControls) {
+          defaultControls.style.display = 'none';
+          editControls.style.display = 'flex';
+        }
+      });
+    }
+
+    // Handle click on the new cancel button
+    if (cancelButton) {
+      cancelButton.addEventListener('click', () => {
+        if (defaultControls && editControls) {
+          editControls.style.display = 'none';
+          defaultControls.style.display = 'flex';
+        }
+      });
+    }
+  });
+});
