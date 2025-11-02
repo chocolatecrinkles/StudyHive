@@ -247,6 +247,7 @@
   <button class="tag" data-filter="pastries"><i class="fas fa-bread-slice"></i> Pastries</button>
   <button class="tag" data-filter="ac"><i class="fas fa-snowflake"></i> AC</button>
   <button class="tag" data-filter="open24"><i class="fas fa-clock"></i> 24/7</button>
+  <button class="tag" data-filter="trending"><i class="fas fa-fire"></i> Trending</button>
 </div>
 
 
@@ -273,17 +274,26 @@
       <div class="cards-grid" id="cardsGrid">
         {% for spot in study_spaces %}
         <div class="spot-card" id="spot-{{ spot.id }}">
-          <div class="card-img-wrap">
+          <div class="card-img-wrap" style="position: relative;">
             {% if spot.image %}
               <img src="{{ spot.image.url }}" alt="{{ spot.name }}">
             {% else %}
               <img src="{% static 'imgs/placeholder.png' %}" alt="Placeholder">
             {% endif %}
+
             <div class="card-badge">
-              <i class="fas fa-star"></i>
-              {{ spot.rating }}
+              <i class="fas fa-star"></i> {{ spot.rating }}
             </div>
+
+            {% if spot.is_trending %}
+            <div class="trending-badge">
+              🔥 Trending
+            </div>
+            {% endif %}
           </div>
+
+    
+
           <div class="card-info">
             <h3>{{ spot.name }}</h3>
             <p class="card-location">

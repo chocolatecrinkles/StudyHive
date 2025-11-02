@@ -83,6 +83,7 @@
       <button class="filter-chip" data-filter="coffee"><i class="fas fa-mug-hot"></i> Coffee</button>
       <button class="filter-chip" data-filter="ac"><i class="fas fa-snowflake"></i> AC</button>
       <button class="filter-chip" data-filter="pastries"><i class="fas fa-bread-slice"></i> Pastries</button>
+      <button class="filter-chip" data-filter="trending"><i class="fas fa-fire"></i> Trending</button>
     </div>
 
     <div class="spot-list">
@@ -101,9 +102,18 @@
             {% else %}
               <img src="{% static 'imgs/map_placeholder.jpg' %}" alt="Placeholder image">
             {% endif %}
+
+            <!-- Status badge -->
             <span class="status-badge {% if spot.open_24_7 %}open{% else %}closed{% endif %}">
               {% if spot.open_24_7 %}Open{% else %}Closed{% endif %}
             </span>
+
+            <!-- Trending badge  -->
+            {% if spot.is_trending %}
+            <span class="trending-badge-map">
+              <i class="fas fa-fire"></i> Trending
+            </span>
+            {% endif %}
           </div>
           <div class="spot-content">
             <h3>{{ spot.name }}</h3>

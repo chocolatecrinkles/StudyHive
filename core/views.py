@@ -74,6 +74,8 @@ def home(request):
         study_spaces = study_spaces.filter(pastries=True)
     elif filter_by == "open24":
         study_spaces = study_spaces.filter(open_24_7=True)
+    elif filter_by == "trending":
+        study_spaces = study_spaces.filter(is_trending=True)
 
     context = {
         "study_spaces": study_spaces,
@@ -337,3 +339,7 @@ def studyspot_detail(request, spot_id):
     """Public view for a single study spot"""
     spot = get_object_or_404(StudySpot, id=spot_id)
     return render(request, 'studyspot_detail.html', {'spot': spot})
+
+def trending_studyspots(request):
+    trending_spots = StudySpot.objects.filter(is_trending=True)
+    return render(request, 'core/trending.html', {'trending_spots': trending_spots})
