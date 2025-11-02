@@ -1483,3 +1483,26 @@ body {
   color: #1f2a2a;
 }
 
+.trending-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: linear-gradient(45deg, #ff7a18, #ffca18);
+  color: #fff;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  animation: pulse 1.5s infinite alternate;
+  /* Ensure badge sits above the image and is laid out as a small pill */
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 20;
+}
+
+@keyframes pulse {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(1.05); opacity: 0.85; }
+}

@@ -28,9 +28,9 @@ class StaffApplicationAdmin(admin.ModelAdmin):
 @admin.register(StudySpot)
 class StudySpotAdmin(admin.ModelAdmin):
     list_display = (
-        "name", "owner", "wifi", "open_24_7", "outlets", "coffee", "ac", "pastries", "rating"
+        "name", "owner", "wifi", "open_24_7", "outlets", "coffee", "ac", "pastries", "rating", "is_trending"
     )
-    list_filter = ("wifi", "open_24_7", "outlets", "coffee", "ac", "pastries")
+    list_filter = ("wifi", "open_24_7", "outlets", "coffee", "ac", "pastries", "is_trending")
     search_fields = ("name", "location", "description")
     fieldsets = (
         (None, {
@@ -40,6 +40,8 @@ class StudySpotAdmin(admin.ModelAdmin):
             "fields": ("wifi", "open_24_7", "outlets", "coffee", "ac", "pastries")
         }),
     )
+
+    list_editable = ('is_trending',)
 
 
 

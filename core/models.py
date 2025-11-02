@@ -34,6 +34,9 @@ class StudySpot(models.Model):
     coffee = models.BooleanField(default=False)
     ac = models.BooleanField(default=False)
     pastries = models.BooleanField(default=False)
+
+    is_trending = models.BooleanField(default=False)
+
     def __str__(self):
         return self.name
 
