@@ -3,6 +3,8 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from .models import StaffApplication
 from .models import StudySpot
+from django import forms
+from .models import Review  
 
 COMMON_INPUT_CLASSES = (
     "w-full rounded-md border-2 border-[#8BC29A] bg-white text-slate-800 "
@@ -105,6 +107,23 @@ class CustomAuthenticationForm(AuthenticationForm):
             "placeholder": "Enter your password",
         })
     )
+
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['rating', 'comment']
+        widgets = {
+            # --- THIS IS THE CHANGE ---
+            'rating': forms.HiddenInput(attrs={
+                'id': 'id_rating_input', # Add an ID for JS
+            }),
+            'comment': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': 'Share your experience...'
+            }),
+        }
+
 
 class StaffApplicationForm(forms.ModelForm):
     class Meta:

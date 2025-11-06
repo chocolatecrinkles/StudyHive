@@ -7,126 +7,11 @@
   <title>{{ spot.name }} | StudyHive</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Nunito+Sans:wght@400;700&display=swap" rel="stylesheet">
-  <script src="https://kit.fontawesome.com/a2d9d5c6b2.js" crossorigin="anonymous"></script>
-
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
   <link rel="stylesheet" href="{% static 'css/listings_shared.css' %}">
-  <style>
-    body {
-      background-color: #203730;
-      font-family: 'Poppins', sans-serif;
-      color: #dceedd;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 2rem;
-    }
-
-    .detail-container {
-      background-color: #294a41;
-      padding: 2rem;
-      border-radius: 16px;
-      max-width: 700px;
-      width: 100%;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-    }
-
-    .detail-container img {
-      width: 100%;
-      border-radius: 12px;
-      margin-bottom: 1rem;
-    }
-
-    h1 {
-      color: #b1ffad;
-      text-align: center;
-      margin-bottom: 0.5rem;
-    }
-
-    .location {
-      text-align: center;
-      color: #a9e8a5;
-      font-size: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .description {
-      text-align: center;
-      color: #dceedd;
-      font-size: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .amenities {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0.6rem;
-      margin-bottom: 2rem;
-    }
-
-    .amenity {
-      background-color: #3b5c52;
-      color: #b1ffad;
-      padding: 0.5rem 0.8rem;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-
-    .back-btn {
-      display: inline-block;
-      text-decoration: none;
-      background-color: #1b322b;
-      border: 1px solid #b1ffad;
-      color: #b1ffad;
-      padding: 0.6rem 1.4rem;
-      border-radius: 8px;
-      font-weight: 600;
-      transition: 0.2s;
-    }
-
-    .back-btn:hover {
-      background-color: #2c4a3f;
-    }
-
-    .image-wrapper {
-      position: relative;
-      display: inline-block;
-      width: 100%;
-    }
-
-    .image-wrapper img {
-      width: 100%;
-      border-radius: 12px;
-      margin-bottom: 1rem;
-      display: block;
-    }
-
-    .trending-badge {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      background: linear-gradient(135deg, #ff6b6b, #ff9f43);
-      color: #fff;
-      font-weight: 700;
-      font-size: 0.9rem;
-      padding: 6px 12px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-      z-index: 10;
-      animation: pulse 1.8s infinite;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.08); opacity: 0.9; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-  </style>
+  <link rel="stylesheet" href="{% static 'css/details.css' %}">
 </head>
 
 <body>
@@ -141,7 +26,15 @@
     {% endif %}
 
     <h1>{{ spot.name }}</h1>
-    <p class="location"><i class="fas fa-location-dot"></i> {{ spot.location }}</p>
+    
+    <p class="location">
+      <i class="fas fa-star rating-icon" aria-hidden="true"></i>
+      <strong>{{ spot.average_rating }}</strong>
+      &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+      <i class="fas fa-location-dot"></i>
+      {{ spot.location }}
+    </p>
+
     <p class="description">{{ spot.description }}</p>
 
     <div class="amenities">
@@ -153,9 +46,227 @@
       {% if spot.pastries %}<div class="amenity"><i class="fas fa-cookie"></i> Pastries</div>{% endif %}
     </div>
 
-    <div style="text-align:center;">
+    {% if messages %}
+    <div class="messages">
+      {% for message in messages %}
+        <div class="message {{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="review-form">
+      <div class="panel-heading">
+        <span class="panel-icon" aria-hidden="true"><i class="fas fa-pen-nib"></i></span>
+        <div>
+          <h3>Leave a Review</h3>
+          <p class="panel-subtitle">Share your experience with the StudyHive community.</p>
+        </div>
+      </div>
+      <form method="POST" novalidate>
+        {% csrf_token %}
+        {{ form.rating }}
+        {% if form.non_field_errors %}
+          <div class="field-errors">
+            {% for error in form.non_field_errors %}
+              <span class="error-text">{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <div class="rating-wrapper">
+          <p class="rating-title">Rating (1–5):</p>
+          <div class="star-rating-widget" role="radiogroup" aria-label="Select a rating">
+            {% for _ in "12345" %}
+              <button type="button" class="rating-star" data-value="{{ forloop.counter }}" role="radio" aria-checked="false" aria-label="{{ forloop.counter }} star{% if not forloop.last %}s{% endif %}">
+                <i class="far fa-star" aria-hidden="true"></i>
+                <span class="sr-only">{{ forloop.counter }} star{% if not forloop.last %}s{% endif %}</span>
+              </button>
+            {% endfor %}
+          </div>
+          <p class="rating-hint"><span class="rating-value">0</span><span class="rating-scale">/ 5</span><span class="rating-helper">Hover or tap to preview, click to lock in.</span></p>
+          {% if form.rating.errors %}
+            <div class="field-errors">
+              {% for error in form.rating.errors %}
+                <span class="error-text">{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.comment.id_for_label }}">Comment:</label>
+          {{ form.comment }}
+          {% if form.comment.errors %}
+            <div class="field-errors">
+              {% for error in form.comment.errors %}
+                <span class="error-text">{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        <button type="submit">Submit Review</button>
+      </form>
+    </div>
+
+
+    <div class="review-list">
+      <div class="panel-heading is-secondary">
+        <span class="panel-icon" aria-hidden="true"><i class="fas fa-comments"></i></span>
+        <div>
+          <h3>What other students are saying</h3>
+          <p class="panel-subtitle">Real voices from fellow learners.</p>
+        </div>
+      </div>
+      {% for review in reviews %}
+        <div class="review-card">
+          <div class="review-card-header">
+            <strong>{{ review.user.username }}</strong>
+            <div classs="star-display">
+              {% for i in "12345" %}
+                {% if forloop.counter <= review.rating %}
+                  <i class="fas fa-star"></i>
+                {% else %}
+                  <i class="far fa-star"></i>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          <p>{{ review.comment }}</p>
+          <small>{{ review.created_at|date:"F d, Y" }}</small>
+        </div>
+      {% empty %}
+        <p class="no-reviews-placeholder">Be the first to review this spot!</p>
+      {% endfor %}
+    </div>
+
+    <div class="detail-actions">
       <a href="{% url 'core:home' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Explore</a>
     </div>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const starWidgets = document.querySelectorAll('.star-rating-widget');
+
+      const setStars = (stars, activeValue) => {
+        stars.forEach(star => {
+          const value = parseInt(star.dataset.value, 10);
+          const icon = star.querySelector('.fa-star');
+          const isActive = value <= activeValue;
+          icon.classList.toggle('fas', isActive);
+          icon.classList.toggle('far', !isActive);
+          star.setAttribute('aria-checked', value === activeValue ? 'true' : 'false');
+        });
+      };
+
+      const focusStarByValue = (widget, value) => {
+        const target = widget.querySelector('.rating-star[data-value="' + value + '"]');
+        if (target) {
+          target.focus();
+        }
+      };
+
+      starWidgets.forEach(widget => {
+        const form = widget.closest('form');
+        if (!form) {
+          return;
+        }
+
+        const ratingInput = form.querySelector('input[name="rating"]');
+        if (!ratingInput) {
+          return;
+        }
+
+        const stars = Array.from(widget.querySelectorAll('.rating-star'));
+        if (!stars.length) {
+          return;
+        }
+
+        const ratingHint = widget.parentElement.querySelector('.rating-hint');
+        const ratingValueEl = ratingHint ? ratingHint.querySelector('.rating-value') : null;
+        const ratingHelperEl = ratingHint ? ratingHint.querySelector('.rating-helper') : null;
+
+        const updateHint = (value, state) => {
+          if (!ratingHint) {
+            return;
+          }
+
+          const safeValue = value || 0;
+
+          if (ratingValueEl) {
+            ratingValueEl.textContent = safeValue;
+          }
+
+          if (ratingHelperEl) {
+            if (safeValue === 0) {
+              ratingHelperEl.textContent = 'Hover or tap to preview, click to lock in.';
+            } else if (state === 'locked') {
+              ratingHelperEl.textContent = 'Rating locked. You can change it before submitting.';
+            } else if (state === 'preview') {
+              ratingHelperEl.textContent = 'Previewing... release to reset.';
+            } else {
+              ratingHelperEl.textContent = '';
+            }
+          }
+        };
+
+        let selectedRating = parseInt(ratingInput.value, 10) || 0;
+        ratingInput.value = selectedRating;
+        setStars(stars, selectedRating);
+        updateHint(selectedRating, selectedRating > 0 ? 'locked' : 'idle');
+
+        widget.addEventListener('mouseleave', () => {
+          setStars(stars, selectedRating);
+          updateHint(selectedRating, selectedRating > 0 ? 'locked' : 'idle');
+        });
+
+        stars.forEach(star => {
+          const value = parseInt(star.dataset.value, 10);
+
+          star.addEventListener('mouseenter', () => {
+            setStars(stars, value);
+            updateHint(value, 'preview');
+          });
+
+          star.addEventListener('focus', () => {
+            setStars(stars, value);
+            updateHint(value, 'preview');
+          });
+
+          star.addEventListener('click', () => {
+            selectedRating = value;
+            ratingInput.value = value;
+            setStars(stars, selectedRating);
+            updateHint(selectedRating, 'locked');
+          });
+
+          star.addEventListener('keydown', event => {
+            if (!['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', ' ', 'Enter'].includes(event.key)) {
+              return;
+            }
+
+            event.preventDefault();
+
+            if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
+              const nextValue = Math.min(5, value + 1);
+              focusStarByValue(widget, nextValue);
+              return;
+            }
+
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
+              const prevValue = Math.max(1, value - 1);
+              focusStarByValue(widget, prevValue);
+              return;
+            }
+
+            if (event.key === ' ' || event.key === 'Enter') {
+              selectedRating = value;
+              ratingInput.value = value;
+              setStars(stars, selectedRating);
+              updateHint(selectedRating, 'locked');
+            }
+          });
+        });
+      });
+    });
+  </script>
 </body>
 </html>
