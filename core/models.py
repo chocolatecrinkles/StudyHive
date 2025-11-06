@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import Avg
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -36,6 +38,22 @@ class StudySpot(models.Model):
     pastries = models.BooleanField(default=False)
 
     is_trending = models.BooleanField(default=False)
+    average_rating = models.DecimalField(
+        max_digits=3, decimal_places=2, default=0.00
+    )
+
+    def update_average_rating(self):
+        """
+        Calculate and update the average rating for this spot.
+        """
+        # 'reviews' is the related_name we set on the Review model
+        average = self.reviews.aggregate(Avg('rating'))['rating__avg']
+        
+        if average is not None:
+            self.average_rating = round(average, 2)
+        else:
+            self.average_rating = 0.00
+        self.save()
 
     def __str__(self):
         return self.name
@@ -74,3 +92,24 @@ class StaffApplication(models.Model):
 
     def __str__(self):
         return f"{self.full_name} ({self.status})"
+
+
+class Review(models.Model):
+    spot = models.ForeignKey(StudySpot, on_delete=models.CASCADE, related_name="reviews")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reviews")
+    rating = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    comment = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # This is the database constraint from your sub-tasks.
+        # It ensures a user can only write one review per spot.
+        unique_together = ('spot', 'user')
+
+    def __str__(self):
+        return f"{self.user.username}'s review for {self.spot.name}"
+    
+
+

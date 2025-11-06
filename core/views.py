@@ -15,6 +15,8 @@ from .forms import StaffApplicationForm
 from .forms import StudySpotForm
 from django.db.models import Q
 from .models import StudySpot
+from .models import Review  
+from .forms import ReviewForm
 
 
 def contributor_required(view_func):
@@ -336,9 +338,46 @@ def apply_staff(request):
     })
 
 def studyspot_detail(request, spot_id):
-    """Public view for a single study spot"""
     spot = get_object_or_404(StudySpot, id=spot_id)
-    return render(request, 'studyspot_detail.html', {'spot': spot})
+    reviews = spot.reviews.all().order_by('-created_at') # Get existing reviews
+    
+    if request.method == 'POST':
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            messages.error(request, "You must be logged in to post a review.")
+            return redirect('login') # Or your login URL
+
+        form = ReviewForm(request.POST)
+        
+        if form.is_valid():
+            # Check if user has already reviewed this spot
+            if Review.objects.filter(spot=spot, user=request.user).exists():
+                messages.error(request, "You have already submitted a review for this spot.")
+            else:
+                review = form.save(commit=False)
+                review.spot = spot
+                review.user = request.user
+                review.save()
+                
+                # --- THIS IS THE KEY ---
+                # Recalculate and save the new average rating
+                spot.update_average_rating()
+                
+                messages.success(request, "Your review has been submitted!")
+                return redirect('core:studyspot_detail', spot_id=spot.id)
+        else:
+            messages.error(request, "There was an error with your submission.")
+
+    else:
+        # This is a GET request, so just show a blank form
+        form = ReviewForm()
+
+    context = {
+        'spot': spot,
+        'reviews': reviews,
+        'form': form,
+    }
+    return render(request, 'studyspot_detail.html', context)
 
 def trending_studyspots(request):
     trending_spots = StudySpot.objects.filter(is_trending=True)

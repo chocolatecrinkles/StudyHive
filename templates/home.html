@@ -282,7 +282,7 @@
             {% endif %}
 
             <div class="card-badge">
-              <i class="fas fa-star"></i> {{ spot.rating }}
+              <i class="fas fa-star"></i> {{ spot.average_rating|floatformat:1 }}
             </div>
 
             {% if spot.is_trending %}
