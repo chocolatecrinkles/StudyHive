@@ -95,7 +95,8 @@
              data-outlets="{{ spot.outlets }}"
              data-coffee="{{ spot.coffee }}"
              data-ac="{{ spot.ac }}"
-             data-pastries="{{ spot.pastries }}">
+             data-pastries="{{ spot.pastries }}"
+             data-trending="{{ spot.is_trending }}">
           <div class="spot-image">
             {% if spot.image %}
               <img src="{{ spot.image.url }}" alt="{{ spot.name }}">
