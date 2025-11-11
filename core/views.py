@@ -1,23 +1,41 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, get_user_model
 from core.forms import CustomUserCreationForm, CustomAuthenticationForm
-from .models import UserProfile  
+from .models import UserProfile 
 from django.http import JsonResponse
 from core.models import StudySpot
 from django.core.exceptions import PermissionDenied
 from .models import StaffApplication
-import os
-from supabase import create_client
-from dotenv import load_dotenv
-from .forms import StaffApplicationForm
-from .forms import StudySpotForm
+from .forms import StaffApplicationForm, StudySpotForm, ReviewForm
 from django.db.models import Q
-from .models import StudySpot
-from .models import Review  
-from .forms import ReviewForm
+from .models import Review 
 
+# --- SUPABASE/PYTHON SETUP ---
+import os
+import json
+from supabase import create_client, Client
+from dotenv import load_dotenv 
+
+# Ensure these variables are loaded via your Django settings or environment
+SUPABASE_URL = os.getenv("SUPABASE_URL") 
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+# Initialize Supabase client once
+try:
+    if SUPABASE_URL and SUPABASE_KEY:
+        supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    else:
+        # Handle case where environment variables are missing
+        supabase = None
+        print("WARNING: Supabase credentials not found in environment variables.")
+except Exception as e:
+    supabase = None
+    print(f"ERROR initializing Supabase client: {e}")
+
+User = get_user_model()
+# --- END SUPABASE/PYTHON SETUP ---
 
 def contributor_required(view_func):
     @login_required
@@ -29,7 +47,6 @@ def contributor_required(view_func):
     return wrapper
 
 def login_view(request):
-
     if request.user.is_authenticated:
         return redirect("core:home")
 
@@ -45,7 +62,6 @@ def login_view(request):
     else:
         form = CustomAuthenticationForm()
     return render(request, "login.html", {"form": form})
-
 
 
 @login_required(login_url="core:login")
@@ -87,11 +103,10 @@ def home(request):
     return render(request, "home.html", context)
 
 
-
 def logout_view(request):
     logout(request)
     messages.info(request, "You have been logged out.")
-    return redirect("core:login")  # ✅ Namespace added
+    return redirect("core:login") 
 
 
 def register_view(request):
@@ -101,7 +116,7 @@ def register_view(request):
             user = form.save()
             login(request, user)
             messages.success(request, "Account created successfully!")
-            return redirect("core:home")  # ✅ Namespace added
+            return redirect("core:home") 
         else:
             messages.error(request, "Please fix the errors below.")
     else:
@@ -133,7 +148,7 @@ def manage_profile(request):
         avatar = request.FILES.get("avatar")
         avatar_removed = request.POST.get("avatar_removed")
 
-        # Validate required fields
+        # Validate required fields (This is a minimal server-side check; client handles detailed format)
         if not first_name or not last_name or not username or not email:
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({"status": "error", "message": "First name, last name, username, and email are required."}, status=400)
@@ -144,9 +159,22 @@ def manage_profile(request):
         user = request.user
         user.first_name = first_name
         user.last_name = last_name
+        
+        # NOTE: Final unique username check should ideally be done here before saving the user object
+        # Django's model validation will catch non-unique usernames on user.save() but an AJAX response is better.
         user.username = username
         user.email = email
-        user.save()
+        
+        try:
+             user.save()
+        except Exception as e:
+            # Catch database error (like unique constraint violation) and return JSON error
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                 # This is a generic way to catch DB errors, detailed checks should be done separately.
+                return JsonResponse({"status": "error", "message": str(e), "errors": {"username": ["This username may already be taken."]}}, status=400)
+            messages.error(request, f"Update failed: {e}")
+            return redirect("core:manage_profile")
+
 
         # Update profile fields
         profile.middle_initial = middle_initial
@@ -155,13 +183,11 @@ def manage_profile(request):
 
         # Handle avatar removal
         if avatar_removed == 'true':
-            # Delete existing avatar if it exists
             if profile.avatar_url:
                 profile.avatar_url.delete(save=False)
                 profile.avatar_url = None
-        # Handle new avatar upload (only if not removing)
+        # Handle new avatar upload
         elif avatar:
-            # Delete old avatar if uploading new one
             if profile.avatar_url:
                 profile.avatar_url.delete(save=False)
             profile.avatar_url = avatar
@@ -211,7 +237,6 @@ def map_view(request):
     return render(request, "map_view.html", {"study_spots": study_spots})
 
 
-
 @contributor_required
 def create_listing(request):
     if request.method == 'POST':
@@ -250,9 +275,6 @@ def my_listings(request):
     return render(request, 'my_listings.html', {'my_listings': my_listings})
 
 
-
-
-
 @contributor_required
 def edit_listing(request, spot_id):
     spot = get_object_or_404(StudySpot, id=spot_id)
@@ -265,7 +287,6 @@ def edit_listing(request, spot_id):
         form = StudySpotForm(instance=spot)
 
     return render(request, 'edit_listing.html', {'form': form, 'spot': spot})
-
 
 
 @contributor_required
@@ -284,10 +305,6 @@ def delete_listing(request, id):
     
     return redirect("core:my_listings")
 
-
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 @login_required
 def apply_staff(request):
@@ -345,7 +362,7 @@ def studyspot_detail(request, spot_id):
         # Check if user is authenticated
         if not request.user.is_authenticated:
             messages.error(request, "You must be logged in to post a review.")
-            return redirect('login') # Or your login URL
+            return redirect('core:login') 
 
         form = ReviewForm(request.POST)
         
@@ -382,3 +399,53 @@ def studyspot_detail(request, spot_id):
 def trending_studyspots(request):
     trending_spots = StudySpot.objects.filter(is_trending=True)
     return render(request, 'core/trending.html', {'trending_spots': trending_spots})
+
+# --- THE CORRECTED AND CONSOLIDATED UNIQUENESS CHECK VIEW ---
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt # Needed because this is a non-standard AJAX POST request
+@login_required # Requires the user to be logged in
+@require_http_methods(["POST"])
+def check_username_uniqueness(request):
+    """
+    AJAX endpoint to check if a username is available in the Supabase 'UserProfile' table.
+    The client-side request expects: {"username": "new_username_to_check"}
+    """
+    
+    if supabase is None:
+        return JsonResponse({"error": "Supabase client is not configured."}, status=503)
+
+    try:
+        data = json.loads(request.body)
+        username_to_check = data.get('username', '').strip()
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON payload."}, status=400)
+    
+    # Use the User model for the username check, since that's where the unique constraint lives
+    current_username = request.user.username 
+    
+    if not username_to_check:
+        # If the username is empty, treat it as valid (let client/server forms handle required check)
+        return JsonResponse({"is_available": True}, status=200)
+
+    # If the user hasn't changed their username, it's always available.
+    if username_to_check == current_username:
+        return JsonResponse({"is_available": True, "message": "Username is the same."}, status=200)
+
+    # Final check against the database
+    try:
+        # Check Django's User model if the username is already taken by ANY OTHER user.
+        # This is the authoritative check.
+        if User.objects.filter(username__iexact=username_to_check).exists():
+             is_available = False
+             message = "Username already taken."
+        else:
+             is_available = True
+             message = "Username is available."
+
+        return JsonResponse({"is_available": is_available, "message": message}, status=200)
+
+    except Exception as e:
+        print(f"Database Query Error: {e}")
+        return JsonResponse({"error": "Database error during availability check."}, status=500)

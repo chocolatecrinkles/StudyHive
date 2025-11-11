@@ -429,15 +429,38 @@ body {
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  align-items: end;
+  gap: 20px; 
+  align-items: flex-start; 
 }
 
+
 .form-row.personal-info {
-  display: grid;
-  grid-template-columns: 1fr 1fr 100px;
-  gap: 18px;
-  align-items: flex-end;
+    align-items: flex-start !important; 
+}
+.form-group {
+    position: relative; 
+}
+
+.input-error {
+    border-color: #dc3545 !important; 
+    box-shadow: 0 0 0 0.15rem rgba(220, 53, 69, 0.25);
+
+}
+
+.error-message {
+    color: var(--error); 
+    font-size: 0.85em;
+    margin-top: 5px; 
+    margin-bottom: 5px; 
+    width: 100%; 
+    line-height: 1.4;
+    font-weight: 600;
+    z-index: 10; 
+}
+.success-message {
+    color: var(--success); 
+    font-size: 0.85em;
+    font-weight: 600; 
 }
 
 @media (max-width: 768px) {
@@ -874,3 +897,4 @@ body {
 .btn-active:hover {
   background-color: #1b5e20;
 }
+

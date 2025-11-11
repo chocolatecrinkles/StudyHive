@@ -43,7 +43,7 @@
 
     <!-- Form -->
     <form method="post" action="" enctype="multipart/form-data" class="settings-form" novalidate>
-      {% csrf_token %}
+      {% csrf_token %}
 
       <div class="settings-grid">
 
@@ -95,7 +95,6 @@
               <div class="form-group">
                 <label for="first_name">First Name</label>
                 <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" required>
-                <small class="field-hint">Use your real first name.</small>
               </div>
 
               <div class="form-group">
