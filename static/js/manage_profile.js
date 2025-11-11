@@ -1,186 +1,483 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const avatarInput = document.getElementById("avatar-upload");
-  const avatarPreview = document.getElementById("avatarPreview");
-  const avatarReset = document.getElementById("avatarReset");
-  const avatarRemove = document.getElementById("avatarRemove");
-  const form = document.querySelector(".settings-form");
-  const modal = document.getElementById("updateModal");
-  const confirmBtn = document.getElementById("confirmUpdate");
-  const cancelBtn = document.getElementById("cancelUpdate");
-  const saveBtn = document.getElementById("saveBtn");
-  const csrf = document.querySelector("[name=csrfmiddlewaretoken]").value;
-  const originalSrc = avatarPreview ? avatarPreview.src : null;
+    const avatarInput = document.getElementById("avatar-upload");
+    const avatarPreview = document.getElementById("avatarPreview");
+    const avatarReset = document.getElementById("avatarReset");
+    const avatarRemove = document.getElementById("avatarRemove");
+    const form = document.querySelector(".settings-form");
+    const modal = document.getElementById("updateModal");
+    const confirmBtn = document.getElementById("confirmUpdate");
+    const cancelBtn = document.getElementById("cancelUpdate");
+    const saveBtn = document.getElementById("saveBtn");
+    const csrf = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    const originalSrc = avatarPreview ? avatarPreview.src : null;
 
-  // Store original form data (trimmed)
-  const initialData = {};
-  form.querySelectorAll("input, textarea, select").forEach((el) => {
-    initialData[el.name] = (el.value || "").trim();
-  });
+    // --- FIELD REFERENCES ---
+    const firstNameInput = document.getElementById("first_name");
+    const lastNameInput = document.getElementById("last_name");
+    const middleInitialInput = document.getElementById("middle_initial");
+    const usernameInput = document.getElementById("username");
+    const emailInput = document.getElementById("email");
+    const phoneInput = document.getElementById("phone_number");
+    // -------------------------
 
-  // Initially disable Save button
-  saveBtn.disabled = true;
-  saveBtn.classList.add("btn-disabled");
+    // Global variables for uniqueness state and original value
+    let isUsernameUnique = true; 
+    let originalUsername = usernameInput.value.trim(); 
 
-  // Track changes on all inputs
-  form.addEventListener("input", checkFormChanges);
-  avatarInput?.addEventListener("change", checkFormChanges);
-  avatarReset?.addEventListener("click", checkFormChanges);
-  avatarRemove?.addEventListener("click", checkFormChanges);
-
-  function checkFormChanges() {
-    let changed = false;
-
+    // Store original form data (trimmed)
+    const initialData = {};
     form.querySelectorAll("input, textarea, select").forEach((el) => {
-      const original = (initialData[el.name] || "").trim();
-      const current = (el.value || "").trim();
-      if (original !== current) changed = true;
+        if (el.id === 'phone_number') {
+            initialData[el.name] = (el.value || "").replace(/\s/g, '').trim();
+        } else {
+            initialData[el.name] = (el.value || "").trim();
+        }
     });
 
-    // Avatar changes count too
-    if (
-      avatarPreview.dataset.modified === "true" ||
-      avatarPreview.dataset.removed === "true" ||
-      avatarPreview.src !== originalSrc
-    ) {
-      changed = true;
-    }
-
-    toggleSaveButton(changed);
-  }
-
-  function toggleSaveButton(state) {
-    if (state) {
-      saveBtn.disabled = false;
-      saveBtn.classList.remove("btn-disabled");
-      saveBtn.classList.add("btn-active");
-    } else {
-      saveBtn.disabled = true;
-      saveBtn.classList.add("btn-disabled");
-      saveBtn.classList.remove("btn-active");
-    }
-  }
-
-  // Image Preview
-  avatarInput?.addEventListener("change", (e) => {
-    const file = e.target.files?.[0];
-    if (file && /^image\/(png|jpe?g)$/i.test(file.type) && file.size <= 5 * 1024 * 1024) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        avatarPreview.src = ev.target.result;
-        avatarPreview.dataset.modified = "true";
-        checkFormChanges();
-        toast("Image preview loaded", "success");
-      };
-      reader.readAsDataURL(file);
-    } else {
-      toast("Please upload JPG or PNG up to 5MB.", "error");
-      avatarInput.value = "";
-    }
-  });
-
-  // Reset photo
-  avatarReset?.addEventListener("click", (e) => {
-    e.preventDefault();
-    avatarPreview.src = originalSrc;
-    delete avatarPreview.dataset.modified;
-    delete avatarPreview.dataset.removed;
-    avatarInput.value = "";
-    checkFormChanges();
-    toast("Photo reset to original", "success");
-  });
-
-  // Remove photo
-  avatarRemove?.addEventListener("click", (e) => {
-    e.preventDefault();
-    const placeholder =
-      avatarPreview.dataset.placeholder || "/static/imgs/avatar_placeholder.jpg";
-    avatarPreview.src = placeholder;
-    avatarPreview.dataset.removed = "true";
-    delete avatarPreview.dataset.modified;
-    avatarInput.value = "";
-    checkFormChanges();
-    toast("Photo removed (will update on save)", "success");
-  });
-
-  // Show modal on submit
-  form?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    modal.classList.add("active");
-  });
-
-  // Cancel modal
-  cancelBtn?.addEventListener("click", () => modal.classList.remove("active"));
-
-  // Confirm update
-  confirmBtn?.addEventListener("click", async () => {
-    modal.classList.remove("active");
+    // Initially disable Save button
     saveBtn.disabled = true;
-    saveBtn.classList.add("loading");
-    saveBtn.textContent = "Updating...";
+    saveBtn.classList.add("btn-disabled");
 
-    try {
-      const formData = new FormData(form);
-      if (avatarPreview.dataset.removed === "true") {
-        formData.append("avatar_removed", "true");
-      }
+    // --- UTILITY FUNCTIONS (Error Display) ---
 
-      const res = await fetch(form.action || window.location.href, {
-        method: "POST",
-        headers: {
-          "X-CSRFToken": csrf,
-          "X-Requested-With": "XMLHttpRequest",
-        },
-        body: formData,
-      });
+    function showTransientError(inputEl, msg, isError = true) {
+        // Remove existing message for the field
+        inputEl.closest('.form-group')?.querySelectorAll(`.error-message[data-field="${inputEl.name}"], .success-message[data-field="${inputEl.name}"]`).forEach(el => el.remove());
 
-      let data = {};
-      try {
-        data = await res.json();
-      } catch {}
+        // Determine the class based on whether it's an error or success/checking status
+        const className = isError ? 'error-message transient-error' : 'success-message transient-status';
 
-      if (res.ok) {
-        showSuccessPopup("Profile Updated Successfully!");
-        setTimeout(() => (window.location.href = "/profile/"), 1500);
-      } else {
-        toast(data.message || "⚠️ Update failed. Please try again.", "error");
-      }
-    } catch (err) {
-      console.error("Update error:", err);
-      toast("❌ Something went wrong. Please try again.", "error");
-    } finally {
-      saveBtn.disabled = false;
-      saveBtn.classList.remove("loading");
-      saveBtn.textContent = "Save Changes";
+        // Display new transient error
+        const errorDiv = document.createElement('div');
+        errorDiv.className = className;
+        errorDiv.setAttribute('data-field', inputEl.name);
+        errorDiv.textContent = isError ? `Error: ${msg}` : msg; // Only add 'Error:' prefix if it's a true error
+        
+        const fieldHint = inputEl.closest('.form-group').querySelector('.field-hint');
+        if (fieldHint) {
+            inputEl.closest('.form-group').insertBefore(errorDiv, fieldHint);
+        } else {
+            inputEl.closest('.form-group').appendChild(errorDiv);
+        }
+        
+        // Toggle input border color
+        if (isError) {
+            inputEl.classList.add('input-error');
+        } else {
+            inputEl.classList.remove('input-error');
+        }
     }
-  });
 
-  // Toast and success helpers
-  function toast(msg, type = "info") {
-    const el = document.createElement("div");
-    el.className = `toast ${type}`;
-    el.textContent = msg;
-    document.body.appendChild(el);
-    setTimeout(() => el.classList.add("show"), 10);
-    setTimeout(() => {
-      el.classList.remove("show");
-      setTimeout(() => el.remove(), 300);
-    }, 3000);
-  }
+    function clearFormErrors() {
+        form.querySelectorAll('.error-message, .success-message').forEach(el => el.remove());
+        form.querySelectorAll('.form-group input, .form-group textarea').forEach(el => {
+            el.classList.remove('input-error');
+        });
+    }
 
-  function showSuccessPopup(msg) {
-    const popup = document.createElement("div");
-    popup.className = "success-popup";
-    popup.innerHTML = `<div class="popup-content">${msg}</div>`;
-    document.body.appendChild(popup);
-    setTimeout(() => popup.classList.add("show"), 50);
-    setTimeout(() => {
-      popup.classList.remove("show");
-      setTimeout(() => popup.remove(), 300);
-    }, 1500);
-  }
+    function displayFieldErrors(errors) {
+        clearFormErrors();
+        
+        for (const [fieldName, messages] of Object.entries(errors)) {
+            const inputElement = document.querySelector(`[name="${fieldName}"]`);
+            if (inputElement) {
+                const formGroup = inputElement.closest('.form-group');
+                if (formGroup) {
+                    inputElement.classList.add('input-error');
+                    
+                    messages.forEach(msg => {
+                        if (!formGroup.querySelector(`.error-message[data-field="${fieldName}"][data-message="${msg}"]`)) {
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'error-message';
+                            errorDiv.setAttribute('data-field', fieldName);
+                            errorDiv.setAttribute('data-message', msg);
+                            errorDiv.textContent = `Error: ${msg}`;
+                            
+                            const fieldHint = formGroup.querySelector('.field-hint');
+                            if (fieldHint) {
+                                formGroup.insertBefore(errorDiv, fieldHint);
+                            } else {
+                                formGroup.appendChild(errorDiv);
+                            }
+                        }
+                    });
+                }
+            } else {
+                console.error(`General Update Error: ${messages.join(' ')}`);
+            }
+        }
+    }
+    
+    function isValidEmail(email) {
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|net|org|ph|co|io|gov|edu)$/i;
+        return emailRegex.test(email);
+    }
 
+    // --- ASYNC UNIQUNESS CHECK ---
+    async function checkUsernameUniqueness() {
+        const currentUsername = usernameInput.value.trim();
+        isUsernameUnique = false; 
 
-  modal?.addEventListener("click", (e) => {
-    if (e.target === modal) modal.classList.remove("active");
-  });
+        if (currentUsername === originalUsername || currentUsername === "") {
+            isUsernameUnique = true;
+            usernameInput.classList.remove('input-error');
+            usernameInput.closest('.form-group').querySelectorAll('.error-message, .success-message').forEach(el => el.remove());
+            return;
+        }
+
+        showTransientError(usernameInput, "Checking availability...", false); 
+
+        try {
+            const response = await fetch(`/api/check-username/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrf,
+                },
+                body: JSON.stringify({ username: currentUsername }),
+            });
+
+            if (!response.ok) {
+                 throw new Error(`Server returned status ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            usernameInput.closest('.form-group').querySelectorAll('.error-message, .success-message').forEach(el => el.remove());
+
+            if (data.is_available === false) {
+                showTransientError(usernameInput, "Username already taken.", true);
+                isUsernameUnique = false;
+            } else {
+                showTransientError(usernameInput, "Username is available.", false);
+                isUsernameUnique = true;
+            }
+
+        } catch (error) {
+            console.error("Username availability check failed:", error);
+            usernameInput.closest('.form-group').querySelectorAll('.error-message, .success-message').forEach(el => el.remove());
+            
+            isUsernameUnique = true; 
+            usernameInput.classList.remove('input-error');
+            showTransientError(usernameInput, "Could not verify availability. Proceeding to save.", false); 
+        }
+        
+        checkFormChanges(); 
+    }
+    // ----------------------------
+
+    // Function to validate all required fields and collect errors
+    function validateRequiredFields() {
+        clearFormErrors(); 
+        const errors = {};
+        const namePattern = /^[A-Za-z\s]+$/; 
+        const middleInitialPattern = /^[A-Za-z]$/; 
+
+        const fieldsToCheck = [
+            { el: firstNameInput, name: "first_name", displayName: "First Name", pattern: namePattern },
+            { el: lastNameInput, name: "last_name", displayName: "Last Name", pattern: namePattern },
+            { el: usernameInput, name: "username", displayName: "Username" },
+            { el: emailInput, name: "email", displayName: "Email Address" },
+        ];
+
+        for (const field of fieldsToCheck) {
+            const value = field.el.value.trim();
+
+            if (value === "") {
+                errors[field.name] = errors[field.name] || [];
+                errors[field.name].push(`The ${field.displayName} field is required.`);
+            } else if (field.pattern && !field.pattern.test(value)) {
+                errors[field.name] = errors[field.name] || [];
+                errors[field.name].push(`${field.displayName} should only contain letters and spaces.`);
+            } else if (field.el === emailInput && !isValidEmail(value)) {
+                errors[field.name] = errors[field.name] || [];
+                errors[field.name].push("Please enter a valid email address with a common domain.");
+            }
+        }
+        
+        // --- UNIQUE USERNAME CHECK ON SUBMIT ---
+        if (usernameInput.value.trim() !== originalUsername && !isUsernameUnique) {
+            errors[usernameInput.name] = errors[usernameInput.name] || [];
+            errors[usernameInput.name].push("Username is already taken or the check failed.");
+        }
+        // ---------------------------------------
+
+        // --- MIDDLE INITIAL VALIDATION ---
+        const miValue = middleInitialInput.value.trim();
+        if (miValue !== "") {
+            if (miValue.length > 1 || !middleInitialPattern.test(miValue)) {
+                errors[middleInitialInput.name] = errors[middleInitialInput.name] || [];
+                errors[middleInitialInput.name].push("M.I. must be a single letter only.");
+            }
+        }
+
+        // Phone Number Check (if filled - optional field)
+        const phoneValueClean = phoneInput.value.trim().replace(/\s/g, '');
+        
+        // Treat as blank if only the prefix "+63" (length 3) is present.
+        if (phoneValueClean.length > 0 && phoneValueClean !== '+63') {
+            if (!/^\+639\d{9}$/.test(phoneValueClean)) {
+                errors[phoneInput.name] = errors[phoneInput.name] || [];
+                errors[phoneInput.name].push("Phone number must be in the format +639XXXXXXXXX (10 digits after +63).");
+            }
+        }
+
+        if (Object.keys(errors).length > 0) {
+            displayFieldErrors(errors);
+            console.warn("Client-side validation failed. Check fields marked with errors.");
+            return false;
+        }
+
+        return true;
+    }
+    // --- END VALIDATION & ERROR HANDLING FUNCTIONS ---
+
+    // Middle Initial Auto-Capitalization
+    middleInitialInput?.addEventListener('input', function() {
+        if (this.value) {
+            this.value = this.value.toUpperCase();
+        }
+    });
+    
+    // --- USERNAME ASYNC CHECK ON BLUR ---
+    usernameInput?.addEventListener('blur', checkUsernameUniqueness);
+
+    // Phone Number Auto-Spacing and Prefix Enforcement (No change)
+    phoneInput?.addEventListener('input', function() {
+        let value = this.value.replace(/\s/g, '').replace(/[^\d+]/g, ''); 
+
+        if (!value.startsWith('+63')) {
+            value = '+63' + value.replace(/\+63/, '').replace(/^\+/, '');
+        }
+
+        if (value.length > 13) {
+            value = value.substring(0, 13);
+        }
+
+        if (value.length > 3) {
+            value = value.slice(0, 3) + ' ' + value.slice(3);
+        }
+        if (value.length > 7) {
+            value = value.slice(0, 7) + ' ' + value.slice(7);
+        }
+        if (value.length > 11) {
+            value = value.slice(0, 11) + ' ' + value.slice(11);
+        }
+
+        this.value = value;
+        checkFormChanges();
+    });
+    
+    // Email domain lowercase fix
+    emailInput?.addEventListener('blur', function() {
+        const atIndex = this.value.indexOf('@');
+        
+        if (atIndex !== -1) {
+            const localPart = this.value.substring(0, atIndex + 1);
+            const domainPart = this.value.substring(atIndex + 1);
+            
+            this.value = localPart + domainPart.toLowerCase();
+            
+            checkFormChanges(); 
+        }
+    });
+
+    // Clear error class on input/change (MODIFIED TO CLEAR SUCCESS MESSAGE ON INPUT)
+    form.addEventListener('input', (e) => {
+        const target = e.target;
+        
+        // Check if the target input is the username field
+        if (target === usernameInput) {
+             // Clear any lingering green success messages
+             target.closest('.form-group')?.querySelectorAll('.success-message').forEach(el => el.remove());
+             
+             // Set state to checking until blur event can fire (prevents immediate re-validation)
+             if (target.value.trim() !== originalUsername) {
+                isUsernameUnique = false;
+             }
+        }
+
+        // Clear red error class and message on any input
+        if (target.classList.contains('input-error')) {
+            target.classList.remove('input-error');
+            target.closest('.form-group')?.querySelectorAll(`.error-message[data-field="${target.name}"]`).forEach(el => el.remove());
+        }
+        
+        checkFormChanges();
+    });
+
+    // Track changes on all inputs
+    avatarInput?.addEventListener("change", checkFormChanges);
+    avatarReset?.addEventListener("click", checkFormChanges);
+    avatarRemove?.addEventListener("click", checkFormChanges);
+
+    function checkFormChanges() {
+        let changed = false;
+
+        form.querySelectorAll("input, textarea, select").forEach((el) => {
+            let original;
+            let current;
+
+            if (el.id === 'phone_number') {
+                original = (initialData[el.name] || "").trim();
+                current = (el.value || "").replace(/\s/g, '').trim();
+            } else {
+                original = (initialData[el.name] || "").trim();
+                current = (el.value || "").trim();
+            }
+
+            if (original !== current) changed = true;
+        });
+
+        // Avatar changes count too
+        if (
+            avatarPreview.dataset.modified === "true" ||
+            avatarPreview.dataset.removed === "true" ||
+            avatarPreview.src !== originalSrc
+        ) {
+            changed = true;
+        }
+        
+        // Disable save button if username check failed or if the check is pending
+        if (usernameInput.value.trim() !== originalUsername && !isUsernameUnique) {
+            changed = false;
+        }
+
+        toggleSaveButton(changed);
+    }
+
+    function toggleSaveButton(state) {
+        if (state) {
+            saveBtn.disabled = false;
+            saveBtn.classList.remove("btn-disabled");
+            saveBtn.classList.add("btn-active");
+        } else {
+            saveBtn.disabled = true;
+            saveBtn.classList.add("btn-disabled");
+            saveBtn.classList.remove("btn-active");
+        }
+    }
+
+    // Image/Photo Handlers (No functional change)
+    avatarInput?.addEventListener("change", (e) => {
+        const file = e.target.files?.[0];
+        if (file && /^image\/(png|jpe?g)$/i.test(file.type) && file.size <= 5 * 1024 * 1024) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                avatarPreview.src = ev.target.result;
+                avatarPreview.dataset.modified = "true";
+                checkFormChanges();
+                console.log("Image preview loaded.");
+            };
+            reader.readAsDataURL(file);
+        } else {
+            console.error("Please upload JPG or PNG up to 5MB.");
+            avatarInput.value = "";
+        }
+    });
+
+    avatarReset?.addEventListener("click", (e) => {
+        e.preventDefault();
+        avatarPreview.src = originalSrc;
+        delete avatarPreview.dataset.modified;
+        delete avatarPreview.dataset.removed;
+        avatarInput.value = "";
+        checkFormChanges();
+        console.log("Photo reset to original.");
+    });
+
+    avatarRemove?.addEventListener("click", (e) => {
+        e.preventDefault();
+        const placeholder =
+            avatarPreview.dataset.placeholder || "/static/imgs/avatar_placeholder.jpg";
+        avatarPreview.src = placeholder;
+        delete avatarPreview.dataset.modified;
+        avatarInput.value = "";
+        checkFormChanges();
+        console.log("Photo removed (will update on save).");
+    });
+
+    // Show modal on submit (UPDATED to use async validate)
+    form?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        // Wait for asynchronous check to resolve before proceeding
+        await checkUsernameUniqueness(); 
+
+        if (!validateRequiredFields()) {
+            return; 
+        }
+
+        modal.classList.add("active");
+    });
+
+    // Cancel modal
+    cancelBtn?.addEventListener("click", () => modal.classList.remove("active"));
+
+    // Confirm update (Server-side error handling)
+    confirmBtn?.addEventListener("click", async () => {
+        modal.classList.remove("active");
+        saveBtn.disabled = true;
+        saveBtn.classList.add("loading");
+        saveBtn.textContent = "Updating...";
+        
+        clearFormErrors();
+
+        try {
+            const formData = new FormData(form);
+            if (avatarPreview.dataset.removed === "true") {
+                formData.append("avatar_removed", "true");
+            }
+
+            const cleanPhoneNumber = phoneInput.value.replace(/\s/g, '');
+            
+            // --- ONLY SEND PHONE NUMBER IF IT HAS MORE THAN JUST '+63' ---
+            if (cleanPhoneNumber.length > 3) { 
+                 formData.set('phone_number', cleanPhoneNumber);
+            } else {
+                 formData.delete('phone_number');
+            }
+            // ---------------------------------------------------------
+
+            const res = await fetch(form.action || window.location.href, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrf,
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                body: formData,
+            });
+
+            let data = {};
+            try {
+                data = await res.json();
+            } catch (e) {
+                // Ignore if not JSON
+            }
+
+            if (res.ok) {
+                console.log("✅ Profile Updated Successfully. Redirecting to profile page...");
+                setTimeout(() => (window.location.href = "/profile/"), 500); 
+            } else {
+                if (data.errors) {
+                    displayFieldErrors(data.errors);
+                    console.error("❌ Server validation failed. Please check fields marked with errors.");
+                } else {
+                    console.error(`❌ Update failed: ${data.message || 'Unknown server error.'}`);
+                }
+            }
+        } catch (err) {
+            console.error("❌ Network or unknown update error:", err);
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.classList.remove("loading");
+            saveBtn.textContent = "Save Changes";
+        }
+    });
+
+    modal?.addEventListener("click", (e) => {
+        if (e.target === modal) modal.classList.remove("active");
+    });
+    
+    checkUsernameUniqueness();
 });

@@ -24,8 +24,9 @@ urlpatterns = [
     path('delete-listing/<int:id>/', views.delete_listing, name='delete_listing'),
     path('spot/<int:spot_id>/', views.studyspot_detail, name='studyspot_detail'),
  
-
-
     # Staff Application
     path('apply-staff/', views.apply_staff, name='apply_staff'),
+ 
+    #Check username uniqueness
+    path('api/check-username/', views.check_username_uniqueness, name='check_username_uniqueness'),
 ]

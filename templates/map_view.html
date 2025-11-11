@@ -41,17 +41,22 @@
           </div>
           <div class="dropdown-divider"></div>
 
-          {% if user.is_staff %}
-            <a href="{% url 'core:profile' %}">👤 My Profile</a>
-            <a href="{% url 'core:my_listings' %}">📍 My Listings</a>
-            <a href="{% url 'core:create_listing' %}">➕ Create Listing</a>
-          {% else %}
-            <a href="{% url 'core:profile' %}">👤 My Profile</a>
-            <a href="{% url 'core:apply_staff' %}">💼 Become Staff</a>
-          {% endif %}
-          <div class="dropdown-divider"></div>
-          <a href="{% url 'core:logout' %}" class="logout-link" id="logoutLink">🚪 Logout</a>
-        </div>
+          {% if user.userprofile.is_contributor %}
+                <a href="{% url 'core:profile' %}">👤 My Profile</a>
+                <a href="{% url 'core:my_listings' %}">📍 My Listings</a>
+                <a href="{% url 'core:create_listing' %}">➕ Create Listing</a>
+                <a href="#">⚙️ Settings</a>
+              {% else %}
+                <a href="{% url 'core:profile' %}">👤 My Profile</a>
+                <a href="#">🏆 Achievements</a>
+                <a href="{% url 'core:apply_staff' %}">💼 Become a Contributor</a>
+                <a href="#">⚙️ Settings</a>
+              {% endif %}
+
+              <div class="dropdown-divider"></div>
+              <a href="{% url 'core:logout' %}" class="logout-link" id="logoutLink">🚪 Logout</a>
+            </div>
+          </div>
       </div>
     </div>
   </div>
@@ -174,15 +179,6 @@
           </div>
         </div>
 
-        <div class="map-top-controls">
-          <div class="control-group">
-            <button id="filterBtn" class="control-btn primary" aria-expanded="false" aria-controls="filterPopup" title="Filter Spots">
-              <i class="fas fa-sliders-h"></i>
-              <span>Filters</span>
-            </button>
-          </div>
-        </div>
-
         <div class="map-menu-dropdown">
           <button id="menuDots" class="control-btn" aria-expanded="false" aria-controls="dropdownMenu" title="More Options">
             <i class="fas fa-ellipsis-v"></i>
@@ -213,14 +209,6 @@
           <button class="control-btn" aria-label="Center on my location">
             <i class="fas fa-location-arrow"></i>
           </button>
-        </div>
-
-        <div class="map-search-toggle">
-          <label>
-            <input type="checkbox" id="searchAsMove">
-            <i class="fas fa-search"></i>
-            <span>Search as I move the map</span>
-          </label>
         </div>
 
         <div class="map-preview-card hidden" id="mapPreviewCard">

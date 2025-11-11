@@ -615,18 +615,6 @@ body {
   pointer-events: auto;
 }
 
-/* ===== THIS IS THE NEW RULE THAT FIXES THE FILTER BUTTON ===== */
-.map-top-controls {
-  position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
-  z-index: 10;
-}
-/* ========================================================== */
-
-
-/* Enhanced map markers with better visibility and animations */
-
 /* ADD THIS NEW RULESET */
 .map-markers {
   position: absolute;
@@ -858,37 +846,6 @@ body {
   right: 1.5rem;
   z-index: 10;
 }
-
-.map-search-toggle {
-  position: absolute;
-  bottom: 1.5rem;
-  left: 1.5rem;
-  z-index: 10;
-}
-
-.map-search-toggle label {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: var(--white);
-  padding: 0.75rem 1.25rem;
-  border-radius: 12px;
-  box-shadow: var(--shadow-md);
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9375rem;
-  color: var(--dark);
-  transition: all 0.2s;
-}
-
-.map-search-toggle label:hover {
-  background: var(--gray-light);
-}
-
-.map-search-toggle input {
-  cursor: pointer;
-}
-
 /* Enhanced preview card with better styling and animations */
 .map-preview-card {
   position: absolute;
