@@ -1,5 +1,6 @@
 /* StudyHive Map View - Enhanced Modern Design */
 
+
 :root {
   --green-light: #e8f5e9;
   --green-main: #66bb6a;
@@ -406,11 +407,10 @@ body {
   border-radius: 16px;
   overflow: hidden;
   margin-bottom: 1.25rem;
-  cursor: pointer;
+  /* cursor: pointer; */ /* <--- DELETED */
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-shadow: var(--shadow-sm);
 }
-
 .spot-card:hover {
   border-color: var(--green-main);
   box-shadow: var(--shadow-lg);
@@ -1617,4 +1617,22 @@ body {
 @keyframes fireFlicker {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
+}
+
+
+/* === MAP CARD LINK WRAPPER === */
+.map-card-link {
+  display: block;
+  text-decoration: none; /* Removes the underline */
+  color: inherit; /* Makes text use the card's color, not blue */
+  border-radius: 16px; /* Match your card's border-radius */
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  -webkit-tap-highlight-color: transparent; /* Removes blue tap flash on mobile */
+}
+
+/* This applies the hover effect to the LINK, which moves the CARD inside */
+.map-card-link:hover .spot-card {
+  border-color: var(--green-main);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-6px);
 }

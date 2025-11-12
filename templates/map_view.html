@@ -2,6 +2,7 @@
 {% load static %}
 {% block content %}
 
+
 <link rel="stylesheet" href="{% static 'css/map_view.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
@@ -93,54 +94,63 @@
 
     <div class="spot-list">
       {% for spot in study_spots %}
-        <div class="spot-card"
-             data-spot-id="{{ spot.id }}"
-             data-wifi="{{ spot.wifi }}"
-             data-open24="{{ spot.open_24_7 }}"
-             data-outlets="{{ spot.outlets }}"
-             data-coffee="{{ spot.coffee }}"
-             data-ac="{{ spot.ac }}"
-             data-pastries="{{ spot.pastries }}"
-             data-trending="{{ spot.is_trending }}">
-          <div class="spot-image">
-            {% if spot.image %}
-              <img src="{{ spot.image.url }}" alt="{{ spot.name }}">
-            {% else %}
-              <img src="{% static 'imgs/map_placeholder.jpg' %}" alt="Placeholder image">
-            {% endif %}
 
-            <!-- Status badge -->
-            <span class="status-badge {% if spot.open_24_7 %}open{% else %}closed{% endif %}">
-              {% if spot.open_24_7 %}Open{% else %}Closed{% endif %}
-            </span>
-
-            <!-- Trending badge  -->
-            {% if spot.is_trending %}
-            <span class="trending-badge-map">
-              <i class="fas fa-fire"></i> Trending
-            </span>
-            {% endif %}
+        <a href="{% url 'core:studyspot_detail' spot.id %}" 
+           class="map-card-link"
+           data-spot-id="{{ spot.id }}"
+           data-name="{{ spot.name|escape }}"
+           data-location="{{ spot.location|escape }}"
+           data-rating="{{ spot.average_rating|default_if_none:spot.rating|default_if_none:0|floatformat:1 }}"
+           data-status="{% if spot.open_24_7 %}open{% else %}closed{% endif %}"
+           data-image="{% if spot.image %}{{ spot.image.url }}{% else %}{% static 'imgs/map_placeholder.jpg' %}{% endif %}"
+           data-detail-url="{% url 'core:studyspot_detail' spot.id %}"
+           data-wifi="{{ spot.wifi }}"
+           data-open24="{{ spot.open_24_7 }}"
+           data-outlets="{{ spot.outlets }}"
+           data-coffee="{{ spot.coffee }}"
+           data-ac="{{ spot.ac }}"
+           data-pastries="{{ spot.pastries }}"
+           data-trending="{{ spot.is_trending }}">
+          
+          <div class="spot-card">
+            <div class="spot-image">
+...
+              {% if spot.image %}
+                <img src="{{ spot.image.url }}" alt="{{ spot.name }}">
+              {% else %}
+                <img src="{% static 'imgs/map_placeholder.jpg' %}" alt="Placeholder image">
+              {% endif %}
+  
+              <span class="status-badge {% if spot.open_24_7 %}open{% else %}closed{% endif %}">
+                {% if spot.open_24_7 %}Open{% else %}Closed{% endif %}
+              </span>
+  
+              {% if spot.is_trending %}
+              <span class="trending-badge-map">
+                <i class="fas fa-fire"></i> Trending
+              </span>
+              {% endif %}
+            </div>
+            <div class="spot-content">
+              <h3>{{ spot.name }}</h3>
+              <div class="spot-location">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>{{ spot.location }}</span>
+              </div>
+              <div class="tags">
+                {% if spot.wifi %}<span><i class="fas fa-wifi"></i> Wi-Fi</span>{% endif %}
+                {% if spot.outlets %}<span><i class="fas fa-plug"></i> Outlets</span>{% endif %}
+                {% if spot.ac %}<span><i class="fas fa-snowflake"></i> AC</span>{% endif %}
+                {% if spot.coffee %}<span><i class="fas fa-mug-hot"></i> Coffee</span>{% endif %}
+                {% if spot.pastries %}<span><i class="fas fa-bread-slice"></i> Pastries</span>{% endif %}
+              </div>
+            </div>
           </div>
-          <div class="spot-content">
-            <h3>{{ spot.name }}</h3>
-            <div class="spot-location">
-              <i class="fas fa-map-marker-alt"></i>
-              <span>{{ spot.location }}</span>
-            </div>
-            <div class="tags">
-              {% if spot.wifi %}<span><i class="fas fa-wifi"></i> Wi-Fi</span>{% endif %}
-              {% if spot.outlets %}<span><i class="fas fa-plug"></i> Outlets</span>{% endif %}
-              {% if spot.ac %}<span><i class="fas fa-snowflake"></i> AC</span>{% endif %}
-              {% if spot.coffee %}<span><i class="fas fa-mug-hot"></i> Coffee</span>{% endif %}
-              {% if spot.pastries %}<span><i class="fas fa-bread-slice"></i> Pastries</span>{% endif %}
-            </div>
-      </div>
+        </a> 
+      {% empty %}
+        <p class="no-spots">No study spots found yet.</p>
+      {% endfor %}
     </div>
-  {% empty %}
-    <p class="no-spots">No study spots found yet.</p>
-  {% endfor %}
-</div>
-
   </aside>
 
   <main class="map-area" role="main" aria-label="Interactive Map Display">
@@ -211,12 +221,12 @@
           </button>
         </div>
 
-        <div class="map-preview-card hidden" id="mapPreviewCard">
+        <div class="map-preview-card" id="mapPreviewCard">
           <button class="preview-close" aria-label="Close preview">
             <i class="fas fa-times"></i>
           </button>
           <div class="preview-image-container">
-            <img src="/placeholder.svg" alt="Study spot preview" class="preview-spot-image">
+            <img src="{% static 'imgs/map_placeholder.jpg' %}" alt="Study spot preview" class="preview-spot-image" data-placeholder="{% static 'imgs/map_placeholder.jpg' %}">
             <span class="preview-status-badge"></span>
           </div>
           <div class="preview-spot-content">
@@ -230,7 +240,7 @@
               <span class="preview-location-text"></span>
             </div>
             <div class="preview-spot-tags"></div>
-            <button class="preview-view-btn">View Details</button>
+            <button class="preview-view-btn" type="button">View Details</button>
           </div>
         </div>
       </div>
@@ -345,11 +355,7 @@
   </div>
 </div>
 
-</body>
-
 <script src="{% static 'js/map_view.js' %}"></script>
-
-
 
 <div id="logoutModal" class="modal-overlay">
   <div class="modal-box">

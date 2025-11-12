@@ -25,7 +25,9 @@ const searchAsMove = document.getElementById("searchAsMove")
 const distanceSlider = document.getElementById("distanceSlider")
 const distanceValue = document.getElementById("distanceValue")
 
-const spotCards = document.querySelectorAll(".spot-card")
+
+// const spotCards = document.querySelectorAll(".spot-card")
+const spotCards = document.querySelectorAll(".map-card-link")
 const mapMarkers = document.querySelectorAll(".map-marker")
 const filterChips = document.querySelectorAll(".filter-chip")
 const mapPreviewCard = document.getElementById("mapPreviewCard")
@@ -34,50 +36,78 @@ const previewCloseBtn = document.querySelector(".preview-close")
 const searchSpot = document.getElementById("searchSpot")
 const searchTriggerBtn = document.getElementById("searchTriggerBtn")
 
-// ===== Spot Data =====
-// Using placeholder data for demonstration. In a real app, this would be fetched.
-const spotsData = {
-  spot1: {
-    id: "spot1",
-    name: "Produktiv",
-    rating: 4.8,
-    distance: "0.8 km",
-    location: "123 Main St, Charlestown",
-    status: "open",
-    image: "{% static 'imgs/produktiv_logo.png' %}", // Use a placeholder if static doesn't work here
-    tags: ["Free Wi-Fi", "Coffee", "Outlets"],
-  },
-  spot2: {
-    id: "spot2",
-    name: "Workplace Café",
-    rating: 4.7,
-    distance: "1.2 km",
-    location: "456 Park Ave, Downtown",
-    status: "closed",
-    image: "{% static 'imgs/workplacecafe_logo.jpg' %}",
-    tags: ["Outlets", "24 Hours", "AC"],
-  },
-  spot3: {
-    id: "spot3",
-    name: "Central Library",
-    rating: 4.9,
-    distance: "0.5 km",
-    location: "789 Library Rd, City Center",
-    status: "open",
-    image: "{% static 'imgs/map_placeholder.jpg' %}",
-    tags: ["Quiet", "Free", "Wi-Fi"],
-  },
-  spot4: {
-    id: "spot4",
-    name: "Cozy Corner Café",
-    rating: 4.6,
-    distance: "1.5 km",
-    location: "321 Oak Street",
-    status: "open",
-    image: "{% static 'imgs/produktiv_logo.png' %}",
-    tags: ["Wi-Fi", "AC"],
-  },
+const previewImage = document.querySelector(".preview-spot-image")
+const previewTitle = document.querySelector(".preview-spot-title")
+const previewRatingValue = document.querySelector(".preview-rating-value")
+const previewRatingStars = document.querySelector(".preview-rating-stars")
+const previewLocationText = document.querySelector(".preview-location-text")
+const previewStatusBadge = document.querySelector(".preview-status-badge")
+const previewTagsContainer = document.querySelector(".preview-spot-tags")
+const viewDetailsBtn = document.querySelector(".preview-view-btn")
+
+const spotDataMap = new Map()
+let currentPreviewSpotId = null
+let currentPreviewDetailUrl = null
+
+const amenityDefinitions = {
+  wifi: { label: "Free Wi-Fi", icon: "fa-wifi" },
+  open24: { label: "24/7", icon: "fa-clock" },
+  outlets: { label: "Outlets", icon: "fa-plug" },
+  coffee: { label: "Coffee", icon: "fa-mug-hot" },
+  ac: { label: "AC", icon: "fa-snowflake" },
+  pastries: { label: "Pastries", icon: "fa-bread-slice" },
+  trending: { label: "Trending", icon: "fa-fire" },
 }
+
+function datasetToBool(value) {
+  if (typeof value === "boolean") return value
+  if (value === undefined || value === null) return false
+  const normalized = String(value).toLowerCase()
+  return normalized === "true" || normalized === "1" || normalized === "yes"
+}
+
+function registerSpotData() {
+  spotCards.forEach((card) => {
+    const data = card.dataset
+    const spotId = data.spotId
+    if (!spotId) return
+
+    const ratingValue = Number.parseFloat(data.rating)
+    const detailUrl = data.detailUrl || card.getAttribute("href") || ""
+    const spotName = data.name || card.querySelector("h3")?.textContent?.trim() || "Untitled Spot"
+    const spotLocation = data.location || card.querySelector(".spot-location span")?.textContent?.trim() || ""
+    const status = (data.status || "closed").toLowerCase()
+    const image = data.image || previewImage?.dataset?.placeholder || ""
+
+    const amenityFlags = {
+      wifi: datasetToBool(data.wifi),
+      open24: datasetToBool(data.open24),
+      outlets: datasetToBool(data.outlets),
+      coffee: datasetToBool(data.coffee),
+      ac: datasetToBool(data.ac),
+      pastries: datasetToBool(data.pastries),
+      trending: datasetToBool(data.trending),
+    }
+
+    const amenityTags = Object.entries(amenityFlags)
+      .filter(([, enabled]) => enabled)
+      .map(([key]) => key)
+
+    spotDataMap.set(spotId, {
+      id: spotId,
+      name: spotName,
+      location: spotLocation,
+      rating: Number.isFinite(ratingValue) ? ratingValue : 0,
+      status,
+      image,
+      detailUrl,
+      amenities: amenityFlags,
+      tags: amenityTags,
+    })
+  })
+}
+
+registerSpotData()
 
 // ===== State Management =====
 let currentZoom = 1
@@ -99,10 +129,23 @@ if (menuBtn) {
 }
 
 spotCards.forEach((card) => {
-  card.addEventListener("click", () => {
+  card.addEventListener("click", (event) => {
+    const spotId = card.dataset.spotId
+    if (!spotId) return
+
+    const isModifiedClick =
+      event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0
+    if (isModifiedClick) {
+      return
+    }
+
+    event.preventDefault()
+
     if (window.innerWidth <= 768) {
       mapSidebar.classList.add("collapsed")
     }
+
+    showPreviewCard(spotId)
   })
 })
 
@@ -172,84 +215,131 @@ if (filterPopup) {
   })
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ===== Filter Functionality =====
-const amenityCheckboxes = document.querySelectorAll('.checkbox-grid input[type="checkbox"]')
-const hoursRadios = document.querySelectorAll('input[name="hours"]')
-const priceRadios = document.querySelectorAll('input[name="price"]')
-const ratingBtns = document.querySelectorAll(".rating-btn")
+// const amenityCheckboxes = document.querySelectorAll('.checkbox-grid input[type="checkbox"]')
+// const hoursRadios = document.querySelectorAll('input[name="hours"]')
+// const priceRadios = document.querySelectorAll('input[name="price"]')
+// const ratingBtns = document.querySelectorAll(".rating-btn")
 
-amenityCheckboxes.forEach((checkbox) => {
-  checkbox.addEventListener("change", () => {
-    updateAmenityFilters()
-  })
-})
+// amenityCheckboxes.forEach((checkbox) => {
+//   checkbox.addEventListener("change", () => {
+//     updateAmenityFilters()
+//   })
+// })
 
-hoursRadios.forEach((radio) => {
-  radio.addEventListener("change", (e) => {
-    activeFilters.hours = e.target.value
-  })
-})
+// hoursRadios.forEach((radio) => {
+//   radio.addEventListener("change", (e) => {
+//     activeFilters.hours = e.target.value
+//   })
+// })
 
-priceRadios.forEach((radio) => {
-  radio.addEventListener("change", (e) => {
-    activeFilters.price = e.target.value
-  })
-})
+// priceRadios.forEach((radio) => {
+//   radio.addEventListener("change", (e) => {
+//     activeFilters.price = e.target.value
+//   })
+// })
 
-ratingBtns.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    ratingBtns.forEach((b) => b.classList.remove("active"))
-    btn.classList.add("active")
-    activeFilters.rating = Number.parseFloat(btn.dataset.rating)
-  })
-})
+// ratingBtns.forEach((btn) => {
+//   btn.addEventListener("click", () => {
+//     ratingBtns.forEach((b) => b.classList.remove("active"))
+//     btn.classList.add("active")
+//     activeFilters.rating = Number.parseFloat(btn.dataset.rating)
+//   })
+// })
 
-if (distanceSlider) {
-  distanceSlider.addEventListener("input", (e) => {
-    activeFilters.distance = Number.parseFloat(e.target.value)
-    distanceValue.textContent = `${activeFilters.distance} km`
-  })
-}
+// if (distanceSlider) {
+//   distanceSlider.addEventListener("input", (e) => {
+//     activeFilters.distance = Number.parseFloat(e.target.value)
+//     distanceValue.textContent = `${activeFilters.distance} km`
+//   })
+// }
 
-function updateAmenityFilters() {
-  activeFilters.amenities = Array.from(amenityCheckboxes)
-    .filter((cb) => cb.checked)
-    .map((cb) => cb.id)
-}
+// function updateAmenityFilters() {
+//   activeFilters.amenities = Array.from(amenityCheckboxes)
+//     .filter((cb) => cb.checked)
+//     .map((cb) => cb.id)
+// }
 
-if (applyFiltersBtn) {
-  applyFiltersBtn.addEventListener("click", () => {
-    filterPopup.classList.remove("active")
-    applyFilters()
-  })
-}
+// if (applyFiltersBtn) {
+//   applyFiltersBtn.addEventListener("click", () => {
+//     filterPopup.classList.remove("active")
+//     applyFilters()
+//   })
+// }
 
-if (clearFiltersBtn) {
-  clearFiltersBtn.addEventListener("click", () => {
-    amenityCheckboxes.forEach((cb) => (cb.checked = false))
-    hoursRadios[0].checked = true
-    priceRadios[0].checked = true
-    ratingBtns.forEach((btn) => btn.classList.remove("active"))
-    ratingBtns[2].classList.add("active")
-    distanceSlider.value = 5
-    distanceValue.textContent = "5 km"
+// if (clearFiltersBtn) {
+//   clearFiltersBtn.addEventListener("click", () => {
+//     amenityCheckboxes.forEach((cb) => (cb.checked = false))
+//     hoursRadios[0].checked = true
+//     priceRadios[0].checked = true
+//     ratingBtns.forEach((btn) => btn.classList.remove("active"))
+//     ratingBtns[2].classList.add("active")
+//     distanceSlider.value = 5
+//     distanceValue.textContent = "5 km"
 
-    activeFilters = {
-      amenities: [],
-      hours: "any",
-      price: "1",
-      rating: 4.5,
-      distance: 5,
-    }
-    // After clearing, re-apply to show all
-    applyFilters()
-  })
-}
+//     activeFilters = {
+//       amenities: [],
+//       hours: "any",
+//       price: "1",
+//       rating: 4.5,
+//       distance: 5,
+//     }
+//     // After clearing, re-apply to show all
+//     applyFilters()
+//   })
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function applyFilters() {
   spotCards.forEach((card) => {
     const spotId = card.dataset.spotId
-    const spot = spotsData[spotId]
+    const spot = spotDataMap.get(spotId)
     if (!spot) return
 
     let shouldShow = true
@@ -261,22 +351,16 @@ function applyFilters() {
     if (activeFilters.hours === "open" && spot.status !== "open") {
       shouldShow = false
     }
-    if (activeFilters.hours === "24h" && !spot.tags.includes("24 Hours")) {
+    if (activeFilters.hours === "24h" && !spot.amenities.open24) {
       shouldShow = false
     }
 
     if (activeFilters.amenities.length > 0) {
-      const amenityMap = {
-        wifi: "Free Wi-Fi", // Adjust based on your data tags
-        outlets: "Outlets",
-        ac: "AC",
-        coffee: "Coffee",
-        quiet: "Quiet",
-        group: "Group Space", // Assuming this tag exists
-      }
       const hasAllAmenities = activeFilters.amenities.every((amenity) => {
-        const tagName = amenityMap[amenity] || amenity
-        return spot.tags.includes(tagName)
+        if (!(amenity in spot.amenities)) {
+          return false
+        }
+        return Boolean(spot.amenities[amenity])
       })
       if (!hasAllAmenities) shouldShow = false
     }
@@ -286,47 +370,19 @@ function applyFilters() {
   updateMarkerVisibility() // Update markers based on filtered cards
 }
 
-// ===== Filter Chips =====
-// filterChips.forEach((chip) => {
-//   chip.addEventListener("click", () => {
-//     filterChips.forEach((c) => c.classList.remove("active"))
-//     chip.classList.add("active")
-//     const filter = chip.dataset.filter
-
-//     spotCards.forEach((card) => {
-//       const spotId = card.dataset.spotId
-//       const spot = spotsData[spotId]
-//       if (!spot) {
-//         card.style.display = "none"
-//         return
-//       }
-
-//       let show = true
-//       if (filter === "open") {
-//         show = spot.status === "open"
-//       } else if (filter === "24/7") {
-//         show = spot.tags.includes("24 Hours")
-//       } else if (filter === "free") {
-//         show = spot.tags.includes("Free")
-//       }
-//       // "all" case is handled by `show = true`
-//       card.style.display = show ? "block" : "none"
-//     })
-//     updateMarkerVisibility()
-//   })
-// })
 
 // ===== Marker Visibility Management =====
 function updateMarkerVisibility() {
-  const searchTerm = searchSpot.value.toLowerCase()
+  const searchTerm = searchSpot ? searchSpot.value.toLowerCase() : ""
 
   mapMarkers.forEach((marker) => {
     const spotId = marker.dataset.spotId
-    const card = document.querySelector(`.spot-card[data-spot-id="${spotId}"]`)
+    const card = document.querySelector(`.map-card-link[data-spot-id="${spotId}"]`)
     if (!card) return
 
     // Show marker if its corresponding card is visible
     const isCardVisible = card.style.display !== "none"
+
     
     if (isCardVisible) {
       marker.classList.add("visible")
@@ -338,8 +394,11 @@ function updateMarkerVisibility() {
 
     // Handle search highlighting
     if (searchTerm.length > 0) {
-      const spot = spotsData[spotId]
-      const matches = spot.name.toLowerCase().includes(searchTerm) || spot.location.toLowerCase().includes(searchTerm)
+      const spot = spotDataMap.get(spotId)
+      if (!spot) return
+      const matches =
+        spot.name.toLowerCase().includes(searchTerm) ||
+        spot.location.toLowerCase().includes(searchTerm)
       if (isCardVisible && matches) {
         marker.classList.add("pulse")
       } else {
@@ -351,28 +410,75 @@ function updateMarkerVisibility() {
   })
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ===== Search Functionality =====
-if (searchSpot) {
-  searchSpot.addEventListener("input", (e) => {
-    const searchTerm = e.target.value.toLowerCase()
+// if (searchSpot) {
+//   searchSpot.addEventListener("input", (e) => {
+//     const searchTerm = e.target.value.toLowerCase()
 
-    spotCards.forEach((card) => {
-      const spotId = card.dataset.spotId
-      const spot = spotsData[spotId]
-      if (!spot) return
-      
-      const matches = spot.name.toLowerCase().includes(searchTerm) || spot.location.toLowerCase().includes(searchTerm)
-      
-      // Only filter if the "All" chip is active
-      const allChip = document.querySelector('.filter-chip[data-filter="all"]')
-      if (allChip && allChip.classList.contains("active")) {
-          card.style.display = matches ? "block" : "none"
-      }
-    })
+//     spotCards.forEach((card) => {
+//       const spotId = card.dataset.spotId
+//       const spot = spotDataMap.get(spotId)
+//       if (!spot) return
 
-    updateMarkerVisibility()
-  })
-}
+//       const matches =
+//         spot.name.toLowerCase().includes(searchTerm) ||
+//         spot.location.toLowerCase().includes(searchTerm)
+
+//       // Only filter if the "All" chip is active
+//       const allChip = document.querySelector('.filter-chip[data-filter="all"]')
+//       if (allChip && allChip.classList.contains("active")) {
+//           card.style.display = matches ? "block" : "none"
+//       }
+//     })
+
+//     updateMarkerVisibility()
+//   })
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 if (searchTriggerBtn) {
   searchTriggerBtn.addEventListener("click", () => {
@@ -385,8 +491,12 @@ if (searchTriggerBtn) {
       if (card.style.display === "none") continue // Skip hidden cards
       
       const spotId = card.dataset.spotId
-      const spot = spotsData[spotId]
-      if (spot.name.toLowerCase().includes(searchTerm) || spot.location.toLowerCase().includes(searchTerm)) {
+      const spot = spotDataMap.get(spotId)
+      if (!spot) continue
+      if (
+        spot.name.toLowerCase().includes(searchTerm) ||
+        spot.location.toLowerCase().includes(searchTerm)
+      ) {
         foundSpotId = spotId
         break
       }
@@ -400,7 +510,7 @@ if (searchTriggerBtn) {
       showPreviewCard(foundSpotId)
       
       // Scroll sidebar to the card
-      const cardElement = document.querySelector(`.spot-card[data-spot-id="${foundSpotId}"]`)
+      const cardElement = document.querySelector(`.map-card-link[data-spot-id="${foundSpotId}"]`)
       if (cardElement) {
           cardElement.scrollIntoView({ behavior: "smooth", block: "center" })
       }
@@ -434,79 +544,88 @@ spotCards.forEach((card) => {
 
 // ===== Map Markers & Preview Card =====
 function showPreviewCard(spotId) {
-  const spot = spotsData[spotId]
+  const spot = spotDataMap.get(spotId)
   if (!spot) return
 
-  // Basic info
-  document.querySelector(".preview-spot-image").src = spot.image.replace("{% static '", "").replace("' %}", ""); // Basic path correction
-  document.querySelector(".preview-spot-image").alt = spot.name
-  document.querySelector(".preview-spot-title").textContent = spot.name
-  document.querySelector(".preview-rating-value").textContent = spot.rating
-  document.querySelector(".preview-location-text").textContent = spot.location
+  currentPreviewSpotId = spotId
+  currentPreviewDetailUrl = spot.detailUrl
 
-  // Status badge
-  const statusBadge = document.querySelector(".preview-status-badge")
-  statusBadge.textContent = spot.status.charAt(0).toUpperCase() + spot.status.slice(1)
-  statusBadge.className = `preview-status-badge ${spot.status}`
-  if(spot.status === 'open') {
-      statusBadge.style.background = 'var(--green-light)'
-      statusBadge.style.color = 'var(--green-dark)'
-  } else {
-      statusBadge.style.background = '#ffebee'
-      statusBadge.style.color = '#c62828'
+  if (previewImage) {
+    const placeholder = previewImage.dataset?.placeholder
+    previewImage.src = spot.image || placeholder || previewImage.src
+    previewImage.alt = spot.name
   }
 
-
-  // Rating stars
-  const starsContainer = document.querySelector(".preview-rating-stars")
-  starsContainer.innerHTML = ""
-  const fullStars = Math.floor(spot.rating)
-  const hasHalfStar = spot.rating % 1 >= 0.5
-  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0)
-
-  for (let i = 0; i < fullStars; i++) {
-    starsContainer.innerHTML += '<i class="fas fa-star"></i>'
-  }
-  if (hasHalfStar) {
-    starsContainer.innerHTML += '<i class="fas fa-star-half-alt"></i>'
-  }
-   for (let i = 0; i < emptyStars; i++) {
-    starsContainer.innerHTML += '<i class="far fa-star"></i>'
+  if (previewTitle) {
+    previewTitle.textContent = spot.name
   }
 
-  // Tags
-  const tagsContainer = document.querySelector(".preview-spot-tags")
-  tagsContainer.innerHTML = spot.tags
-    .map((tag) => {
-      const iconMap = {
-        "Free Wi-Fi": "fa-wifi",
-        "Wi-Fi": "fa-wifi",
-        Outlets: "fa-plug",
-        AC: "fa-snowflake",
-        Coffee: "fa-mug-hot",
-        Quiet: "fa-volume-mute",
-        Free: "fa-hand-holding-heart",
-        "24 Hours": "fa-clock",
-      }
-      return `<span><i class="fas ${iconMap[tag] || "fa-tag"}"></i> ${tag}</span>`
-    })
-    .join("")
+  if (previewRatingValue) {
+    previewRatingValue.textContent = spot.rating.toFixed(1)
+  }
+
+  if (previewLocationText) {
+    previewLocationText.textContent = spot.location
+  }
+
+  if (previewStatusBadge) {
+    previewStatusBadge.textContent = spot.status === "open" ? "Open" : "Closed"
+    previewStatusBadge.className = `preview-status-badge ${spot.status}`
+    if (spot.status === "open") {
+      previewStatusBadge.style.background = "var(--green-light)"
+      previewStatusBadge.style.color = "var(--green-dark)"
+    } else {
+      previewStatusBadge.style.background = "#ffebee"
+      previewStatusBadge.style.color = "#c62828"
+    }
+  }
+
+  if (previewRatingStars) {
+    previewRatingStars.innerHTML = ""
+    const rounded = Math.round(spot.rating * 2) / 2
+    const fullStars = Math.floor(rounded)
+    const hasHalfStar = rounded % 1 !== 0
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0)
+
+    for (let i = 0; i < fullStars; i++) {
+      previewRatingStars.innerHTML += '<i class="fas fa-star"></i>'
+    }
+    if (hasHalfStar) {
+      previewRatingStars.innerHTML += '<i class="fas fa-star-half-alt"></i>'
+    }
+    for (let i = 0; i < emptyStars; i++) {
+      previewRatingStars.innerHTML += '<i class="far fa-star"></i>'
+    }
+  }
+
+  if (previewTagsContainer) {
+    const tagsHtml = spot.tags
+      .map((tagKey) => {
+        const definition = amenityDefinitions[tagKey]
+        if (!definition) return ""
+        return `<span><i class="fas ${definition.icon}"></i> ${definition.label}</span>`
+      })
+      .filter(Boolean)
+      .join("")
+    previewTagsContainer.innerHTML = tagsHtml
+  }
+
+  const marker = document.querySelector(`.map-marker[data-spot-id="${spotId}"]`)
+  if (marker) {
+    marker.classList.add("visible", "pulse")
+    setTimeout(() => marker.classList.remove("pulse"), 600)
+  }
 
   mapPreviewCard.classList.add("active")
 }
 
 spotCards.forEach((card) => {
-  card.addEventListener("click", () => {
+  card.addEventListener("mouseenter", () => {
     const spotId = card.dataset.spotId
-    
-    // Pulse the corresponding marker
     const marker = document.querySelector(`.map-marker[data-spot-id="${spotId}"]`)
     if (marker) {
-      marker.classList.add("visible", "pulse")
-      // Remove pulse after animation finishes
-      setTimeout(() => marker.classList.remove("pulse"), 600)
+      marker.classList.add("visible")
     }
-    showPreviewCard(spotId)
   })
 })
 
@@ -516,7 +635,7 @@ mapMarkers.forEach((marker) => {
     showPreviewCard(spotId)
     
     // Scroll sidebar to the card
-    const cardElement = document.querySelector(`.spot-card[data-spot-id="${spotId}"]`)
+    const cardElement = document.querySelector(`.map-card-link[data-spot-id="${spotId}"]`)
     if (cardElement) {
         cardElement.scrollIntoView({ behavior: "smooth", block: "center" })
     }
@@ -526,6 +645,8 @@ mapMarkers.forEach((marker) => {
 if (previewCloseBtn) {
   previewCloseBtn.addEventListener("click", () => {
     mapPreviewCard.classList.remove("active")
+    currentPreviewSpotId = null
+    currentPreviewDetailUrl = null
   })
 }
 
@@ -602,11 +723,11 @@ if (locationBtn) {
 }
 
 // ===== View Details Button =====
-const viewDetailsBtn = document.querySelector(".preview-view-btn")
 if (viewDetailsBtn) {
   viewDetailsBtn.addEventListener("click", () => {
-    console.log("Navigating to spot details...")
-    // Add navigation logic here
+    if (currentPreviewDetailUrl) {
+      window.location.href = currentPreviewDetailUrl
+    }
   })
 }
 
@@ -636,63 +757,71 @@ console.log("StudyHive Map View initialized")
 
 // ===== Dynamic Amenity Filter (from Django data attributes) =====
 document.addEventListener("DOMContentLoaded", function () {
-  const filterButtons = document.querySelectorAll(".filter-chip");
-  const cards = document.querySelectorAll(".spot-card");
+  const filterButtons = document.querySelectorAll(".filter-chip")
+  const cards = document.querySelectorAll(".map-card-link")
 
-  filterButtons.forEach(button => {
+  filterButtons.forEach((button) => {
     button.addEventListener("click", () => {
       // Toggle active button
-      filterButtons.forEach(btn => btn.classList.remove("active"));
-      button.classList.add("active");
+      filterButtons.forEach((btn) => btn.classList.remove("active"))
+      button.classList.add("active")
 
-      const filter = button.dataset.filter;
+      const filter = button.dataset.filter
 
-      cards.forEach(card => {
+      cards.forEach((card) => {
         // Reset visibility for "All"
         if (filter === "all") {
-          card.style.display = "block";
-          return;
+          card.style.display = "block"
+          return
         }
 
         // Read the corresponding dataset value (True/False)
-        const hasAmenity = card.dataset[filter] === "True" || card.dataset[filter] === "true";
-        card.style.display = hasAmenity ? "block" : "none";
-      });
-    });
-  });
-});
+        const hasAmenity = card.dataset[filter] === "True" || card.dataset[filter] === "true"
+        card.style.display = hasAmenity ? "block" : "none"
+      })
+
+      updateMarkerVisibility()
+    })
+  })
+})
 
 
 // ===== Smart Search Integration =====
 document.addEventListener("DOMContentLoaded", function () {
-  const searchInput = document.getElementById("searchSpot");
-  const cards = document.querySelectorAll(".spot-card");
+  const searchInput = document.getElementById("searchSpot")
+  const cards = document.querySelectorAll(".map-card-link")
 
-  if (!searchInput) return;
+  if (!searchInput) return
 
   searchInput.addEventListener("input", function () {
-    const query = searchInput.value.trim().toLowerCase();
+    const query = searchInput.value.trim().toLowerCase()
 
-    cards.forEach(card => {
+    cards.forEach((card) => {
       // Read card text
-      const name = (card.querySelector("h3")?.textContent || "").toLowerCase();
-      const location = (card.querySelector(".spot-location span")?.textContent || "").toLowerCase();
+      const name = (card.dataset.name || card.querySelector("h3")?.textContent || "").toLowerCase()
+      const location = (card.dataset.location || card.querySelector(".spot-location span")?.textContent || "").toLowerCase()
 
       // Read dataset (booleans)
-      const dataset = Object.keys(card.dataset).filter(key => card.dataset[key] === "True" || card.dataset[key] === "true");
+      const dataset = Object.keys(card.dataset).filter(
+        (key) => card.dataset[key] === "True" || card.dataset[key] === "true"
+      )
 
       // Check if query matches anything
-      const matchesName = name.includes(query);
-      const matchesLocation = location.includes(query);
-      const matchesAmenity = dataset.some(field => field.includes(query.replace(/[^a-z0-9]/g, "")));
+      const matchesName = name.includes(query)
+      const matchesLocation = location.includes(query)
+      const matchesAmenity = dataset.some((field) =>
+        field.includes(query.replace(/[^a-z0-9]/g, ""))
+      )
 
       // Show or hide
       if (query === "" || matchesName || matchesLocation || matchesAmenity) {
-        card.style.display = "block";
+        card.style.display = "block"
       } else {
-        card.style.display = "none";
+        card.style.display = "none"
       }
-    });
-  });
-});
+    })
+
+    updateMarkerVisibility()
+  })
+})
 
