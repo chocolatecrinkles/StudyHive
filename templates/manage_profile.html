@@ -59,10 +59,9 @@
                   <img 
                     id="avatarPreview" 
                     alt="Profile photo"
-                    src="{% if profile.avatar_url %}{{ profile.avatar_url.url }}{% else %}{% static 'imgs/avatar_placeholder.jpg' %}{% endif %}"
+                    src="{% if profile.avatar_url %}{{ profile.avatar_url }}{% else %}{% static 'imgs/avatar_placeholder.jpg' %}{% endif %}"
                     data-placeholder="{% static 'imgs/avatar_placeholder.jpg' %}">
-                </div>
-
+              </div>
                 
                 <div class="avatar-actions">
                   <label for="avatar-upload" class="upload-button">

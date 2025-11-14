@@ -28,12 +28,12 @@
     <div class="profile-card">
       <div class="profile-avatar-container">
         <div class="profile-avatar">
-          {% if user.userprofile.avatar_url %}
-            <img src="{{ user.userprofile.avatar_url.url }}" alt="Profile Picture">
+          {% if profile.avatar_url %}
+              <img src="{{ profile.avatar_url }}" alt="Profile Picture"> 
           {% else %}
-            <img src="{% static 'imgs/avatar_placeholder.jpg' %}" alt="Default Profile Picture">
+              <img src="{% static 'imgs/avatar_placeholder.jpg' %}" alt="Default Profile Picture">
           {% endif %}
-        </div>
+      </div>
       </div>
       
       <h2 class="profile-name">

@@ -306,11 +306,59 @@ document.addEventListener("DOMContentLoaded", () => {
         checkFormChanges();
     });
 
-    // Track changes on all inputs
-    avatarInput?.addEventListener("change", checkFormChanges);
-    avatarReset?.addEventListener("click", checkFormChanges);
-    avatarRemove?.addEventListener("click", checkFormChanges);
+    // --- Profile Picture Handlers (FIXED PREVIEW LOGIC) ---
+    avatarInput?.addEventListener("change", (e) => {
+        const file = e.target.files?.[0];
+        
+        // Check file validation before proceeding
+        if (file && /^image\/(png|jpe?g)$/i.test(file.type) && file.size <= 5 * 1024 * 1024) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                avatarPreview.src = ev.target.result;
+                avatarPreview.dataset.modified = "true";
+                checkFormChanges();
+                console.log("Image preview loaded.");
+            };
+            reader.readAsDataURL(file);
+        } else if (file) {
+             console.error("Please upload JPG or PNG up to 5MB.");
+             avatarInput.value = "";
+        }
+        
+        // Crucial: Update state even if file validation fails (to disable button if no changes were made otherwise)
+        if (file) {
+            avatarPreview.dataset.modified = "true";
+        }
+        checkFormChanges();
+    });
 
+    // Reset photo (Preview change only)
+    avatarReset?.addEventListener("click", (e) => {
+        e.preventDefault();
+        avatarPreview.src = originalSrc;
+        delete avatarPreview.dataset.modified;
+        delete avatarPreview.dataset.removed;
+        avatarInput.value = ""; // Crucial to clear file input so same file can be selected again
+        checkFormChanges();
+        console.log("Photo reset to original preview. Click 'Save' to confirm.");
+    });
+
+    // Remove photo (Preview change only)
+    avatarRemove?.addEventListener("click", (e) => {
+        e.preventDefault();
+        const placeholder =
+            avatarPreview.dataset.placeholder || "/static/imgs/avatar_placeholder.jpg";
+        avatarPreview.src = placeholder;
+        avatarPreview.dataset.removed = "true"; // CRUCIAL flag sent to server
+        delete avatarPreview.dataset.modified;
+        avatarInput.value = ""; 
+        checkFormChanges();
+        console.log("Photo marked for removal. Click 'Save' to confirm.");
+    });
+    // --- End Profile Picture Handlers ---
+
+
+    // Track changes on all inputs
     function checkFormChanges() {
         let changed = false;
 
@@ -358,44 +406,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Image/Photo Handlers (No functional change)
-    avatarInput?.addEventListener("change", (e) => {
-        const file = e.target.files?.[0];
-        if (file && /^image\/(png|jpe?g)$/i.test(file.type) && file.size <= 5 * 1024 * 1024) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                avatarPreview.src = ev.target.result;
-                avatarPreview.dataset.modified = "true";
-                checkFormChanges();
-                console.log("Image preview loaded.");
-            };
-            reader.readAsDataURL(file);
-        } else {
-            console.error("Please upload JPG or PNG up to 5MB.");
-            avatarInput.value = "";
-        }
-    });
-
-    avatarReset?.addEventListener("click", (e) => {
-        e.preventDefault();
-        avatarPreview.src = originalSrc;
-        delete avatarPreview.dataset.modified;
-        delete avatarPreview.dataset.removed;
-        avatarInput.value = "";
-        checkFormChanges();
-        console.log("Photo reset to original.");
-    });
-
-    avatarRemove?.addEventListener("click", (e) => {
-        e.preventDefault();
-        const placeholder =
-            avatarPreview.dataset.placeholder || "/static/imgs/avatar_placeholder.jpg";
-        avatarPreview.src = placeholder;
-        delete avatarPreview.dataset.modified;
-        avatarInput.value = "";
-        checkFormChanges();
-        console.log("Photo removed (will update on save).");
-    });
 
     // Show modal on submit (UPDATED to use async validate)
     form?.addEventListener("submit", async (e) => {
@@ -425,9 +435,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             const formData = new FormData(form);
+            
+            // CRITICAL: Send flag if user chose to remove the avatar
             if (avatarPreview.dataset.removed === "true") {
                 formData.append("avatar_removed", "true");
             }
+            // Note: If avatarInput has a file (new upload), FormData automatically includes it.
 
             const cleanPhoneNumber = phoneInput.value.replace(/\s/g, '');
             
@@ -457,6 +470,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (res.ok) {
                 console.log("✅ Profile Updated Successfully. Redirecting to profile page...");
+                
+                // --- CRITICAL FIX: Refresh source on success before redirecting ---
+                // We update the originalSrc with the new profile picture URL 
+                // received from the server (if available) or the default placeholder,
+                // then redirect. However, since the server response (data) doesn't
+                // contain the new URL directly, we need to rely on the server 
+                // redirecting to load the new URL, OR, since we are AJAX, we 
+                // use location.reload() to force the page to fetch the new URL.
+                
+                // Forcing redirect to /profile/ will cause the browser to reload the data.
+                // The main task is making sure the profile page has the right URL.
+                
                 setTimeout(() => (window.location.href = "/profile/"), 500); 
             } else {
                 if (data.errors) {
