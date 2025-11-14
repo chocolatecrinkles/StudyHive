@@ -11,6 +11,9 @@ from .models import StaffApplication
 from .forms import StaffApplicationForm, StudySpotForm, ReviewForm
 from django.db.models import Q
 from .models import Review 
+import time
+from django.conf import settings
+from django.contrib.staticfiles.storage import staticfiles_storage
 
 # --- SUPABASE/PYTHON SETUP ---
 import os
@@ -18,7 +21,6 @@ import json
 from supabase import create_client, Client
 from dotenv import load_dotenv 
 
-# Ensure these variables are loaded via your Django settings or environment
 SUPABASE_URL = os.getenv("SUPABASE_URL") 
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
@@ -33,6 +35,7 @@ try:
 except Exception as e:
     supabase = None
     print(f"ERROR initializing Supabase client: {e}")
+
 
 User = get_user_model()
 # --- END SUPABASE/PYTHON SETUP ---
@@ -135,7 +138,7 @@ def manage_profile(request):
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
-        # Get form data
+        # --- 1. Get Form Data ---
         first_name = request.POST.get("first_name", "").strip()
         last_name = request.POST.get("last_name", "").strip()
         username = request.POST.get("username", "").strip()
@@ -144,11 +147,10 @@ def manage_profile(request):
         phone_number = request.POST.get("phone_number", "").strip()
         bio = request.POST.get("bio", "").strip()
         
-        # Get file and removal flag
         avatar = request.FILES.get("avatar")
         avatar_removed = request.POST.get("avatar_removed")
 
-        # Validate required fields (This is a minimal server-side check; client handles detailed format)
+        # Validate required fields (minimal check)
         if not first_name or not last_name or not username or not email:
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({"status": "error", "message": "First name, last name, username, and email are required."}, status=400)
@@ -159,18 +161,13 @@ def manage_profile(request):
         user = request.user
         user.first_name = first_name
         user.last_name = last_name
-        
-        # NOTE: Final unique username check should ideally be done here before saving the user object
-        # Django's model validation will catch non-unique usernames on user.save() but an AJAX response is better.
         user.username = username
         user.email = email
         
         try:
-             user.save()
+            user.save()
         except Exception as e:
-            # Catch database error (like unique constraint violation) and return JSON error
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                 # This is a generic way to catch DB errors, detailed checks should be done separately.
                 return JsonResponse({"status": "error", "message": str(e), "errors": {"username": ["This username may already be taken."]}}, status=400)
             messages.error(request, f"Update failed: {e}")
             return redirect("core:manage_profile")
@@ -181,24 +178,94 @@ def manage_profile(request):
         profile.phone_number = phone_number
         profile.bio = bio
 
-        # Handle avatar removal
-        if avatar_removed == 'true':
-            if profile.avatar_url:
-                profile.avatar_url.delete(save=False)
-                profile.avatar_url = None
-        # Handle new avatar upload
-        elif avatar:
-            if profile.avatar_url:
-                profile.avatar_url.delete(save=False)
-            profile.avatar_url = avatar
+        # --- 2. AVATAR HANDLING (Upload/Update Logic) ---
+        bucket_name = "avatars".strip()
 
-        # Update full name
+        if avatar_removed == 'true':
+            placeholder_path = settings.STATIC_URL + 'imgs/avatar_placeholder.jpg'
+            profile.avatar_url = placeholder_path
+            
+        elif avatar:
+            if supabase is None:
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({"status": "error", "message": "Supabase client not initialized. Cannot upload file."}, status=500)
+                messages.error(request, "File storage service is unavailable.")
+                return redirect("core:manage_profile")
+
+            # Define consistent file path
+            file_extension = os.path.splitext(avatar.name)[1]
+            file_path = f"users/{request.user.id}/avatar_final{file_extension}"
+            
+            # Read file content
+            avatar.file.seek(0)
+            file_content = avatar.file.read() 
+
+            try:
+                # Attempt 1: Use .update() for overwriting (if file exists)
+                supabase.storage.from_(bucket_name).update(
+                    file=file_content,
+                    path=file_path,
+                    file_options={"content-type": avatar.content_type}
+                )
+                
+            except Exception as e:
+                # Fallback logic for first-time upload or if update fails
+                if "not found" in str(e).lower() and "bucket" not in str(e).lower(): 
+                    
+                    # Reset content stream pointer and try Fallback Upload
+                    avatar.file.seek(0)
+                    file_content = avatar.file.read() 
+
+                    try:
+                        # Fallback Attempt 2: Use .upload()
+                        supabase.storage.from_(bucket_name).upload(
+                            file=file_content,
+                            path=file_path,
+                            file_options={"content-type": avatar.content_type}
+                        )
+                    except Exception as upload_e:
+                        print(f"Supabase Profile Picture Upload Error (Fallback): {upload_e}")
+                        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                            return JsonResponse({"status": "error", "message": "Avatar upload failed."}, status=400)
+                        messages.error(request, "Failed to upload profile picture.")
+                        return redirect("core:manage_profile")
+                
+                else:
+                    # Catch all other critical errors
+                    print(f"Supabase Profile Picture Critical Error: {e}")
+                    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                        return JsonResponse({"status": "error", "message": "Avatar upload failed: Check Supabase config."}, status=400)
+                    messages.error(request, "Failed to upload profile picture.")
+                    return redirect("core:manage_profile")
+
+            print("--- SUPABASE DEBUG START ---")
+            print(f"File Path: {file_path}")
+            print(f"Bucket Name: {bucket_name}")
+            # --- GLOBAL FIX: ADD CACHE BUSTER TO URL ---
+            base_url = supabase.storage.from_(bucket_name).get_public_url(file_path)
+
+            if base_url.endswith('?'):
+                base_url = base_url[:-1]
+            
+            # Append a unique timestamp to the URL to force the browser to refresh the image globally
+            public_url = f"{base_url}?cachebuster={int(time.time())}" 
+
+            print(f"Base URL (Should be valid): {base_url}")
+            print(f"Final URL saved to DB: {public_url}")
+            print("--- SUPABASE DEBUG END ---")
+            
+            profile.avatar_url = public_url # Saves the unique URL to the database
+
+        # --- END AVATAR HANDLING ---
+
+        # Update full name and save profile
         profile.full_name = f"{first_name} {middle_initial} {last_name}".strip()
         profile.save()
 
         # Return JSON response if AJAX request
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            return JsonResponse({"status": "ok", "message": "Profile updated successfully."})
+            # Optionally return the new URL to the client for immediate UI update without redirecting
+            return JsonResponse({"status": "ok", "message": "Profile updated successfully.", "new_avatar_url": profile.avatar_url})
         
         # Regular form submission
         messages.success(request, "Profile updated successfully.")
@@ -209,7 +276,6 @@ def manage_profile(request):
         "user": request.user,
     }
     return render(request, "manage_profile.html", context)
-
 
 @login_required(login_url="core:login")
 def map_view(request):
@@ -408,11 +474,6 @@ from django.views.decorators.csrf import csrf_exempt
 @login_required # Requires the user to be logged in
 @require_http_methods(["POST"])
 def check_username_uniqueness(request):
-    """
-    AJAX endpoint to check if a username is available in the Supabase 'UserProfile' table.
-    The client-side request expects: {"username": "new_username_to_check"}
-    """
-    
     if supabase is None:
         return JsonResponse({"error": "Supabase client is not configured."}, status=503)
 

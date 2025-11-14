@@ -9,7 +9,7 @@ class UserProfile(models.Model):
     middle_initial = models.CharField(max_length=1, blank=True, null=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
-    avatar_url = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    avatar_url = models.CharField(max_length=500, blank=True, null=True)
 
     is_contributor = models.BooleanField(default=False)
 
