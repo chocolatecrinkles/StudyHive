@@ -69,6 +69,8 @@ def login_view(request):
 
 @login_required(login_url="core:login")
 def home(request):
+    profile = UserProfile.objects.get(user=request.user)
+
     query = request.GET.get("q", "").strip()
     filter_by = request.GET.get("filter", "all")
 
@@ -98,12 +100,12 @@ def home(request):
     elif filter_by == "trending":
         study_spaces = study_spaces.filter(is_trending=True)
 
-    context = {
+    return render(request, "home.html", {
         "study_spaces": study_spaces,
         "query": query,
         "filter_by": filter_by,
-    }
-    return render(request, "home.html", context)
+        "profile": profile,
+    })
 
 
 def logout_view(request):
@@ -130,7 +132,12 @@ def register_view(request):
 @login_required(login_url='core:login')
 def profile_view(request):
     profile, created = UserProfile.objects.get_or_create(user=request.user)
-    return render(request, "profile.html", {"profile": profile})
+
+    return render(request, "profile.html", {
+        "profile": profile,
+        "user": request.user
+    })
+
 
 
 @login_required(login_url='core:login')
@@ -149,6 +156,18 @@ def manage_profile(request):
         
         avatar = request.FILES.get("avatar")
         avatar_removed = request.POST.get("avatar_removed")
+        
+        # --- FIX LOCATION 1: Define Path and Extension Universally ---
+        bucket_name = "avatars" # Must match your Supabase bucket casing
+        file_extension = ""
+        if avatar:
+            file_extension = os.path.splitext(avatar.name)[1]
+            
+        # This is the base path for storage (without the extension)
+        file_path_for_storage = f"users/{request.user.id}/avatar_final" 
+        # The full path that will actually be used for the file in storage (e.g., .../avatar_final.png)
+        full_file_path = f"users/{request.user.id}/avatar_final{file_extension}" 
+        # -------------------------------------------------------------
 
         # Validate required fields (minimal check)
         if not first_name or not last_name or not username or not email:
@@ -179,8 +198,7 @@ def manage_profile(request):
         profile.bio = bio
 
         # --- 2. AVATAR HANDLING (Upload/Update Logic) ---
-        bucket_name = "avatars".strip()
-
+        
         if avatar_removed == 'true':
             placeholder_path = settings.STATIC_URL + 'imgs/avatar_placeholder.jpg'
             profile.avatar_url = placeholder_path
@@ -192,19 +210,15 @@ def manage_profile(request):
                 messages.error(request, "File storage service is unavailable.")
                 return redirect("core:manage_profile")
 
-            # Define consistent file path
-            file_extension = os.path.splitext(avatar.name)[1]
-            file_path = f"users/{request.user.id}/avatar_final{file_extension}"
-            
             # Read file content
             avatar.file.seek(0)
             file_content = avatar.file.read() 
 
             try:
-                # Attempt 1: Use .update() for overwriting (if file exists)
+                # Attempt 1: Use .update() for overwriting (file_path is now full_file_path)
                 supabase.storage.from_(bucket_name).update(
                     file=file_content,
-                    path=file_path,
+                    path=full_file_path,
                     file_options={"content-type": avatar.content_type}
                 )
                 
@@ -220,7 +234,7 @@ def manage_profile(request):
                         # Fallback Attempt 2: Use .upload()
                         supabase.storage.from_(bucket_name).upload(
                             file=file_content,
-                            path=file_path,
+                            path=full_file_path, # Use the full path here too
                             file_options={"content-type": avatar.content_type}
                         )
                     except Exception as upload_e:
@@ -231,26 +245,27 @@ def manage_profile(request):
                         return redirect("core:manage_profile")
                 
                 else:
-                    # Catch all other critical errors
+                    # Catch all other critical errors (RLS failure, etc.)
                     print(f"Supabase Profile Picture Critical Error: {e}")
                     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                         return JsonResponse({"status": "error", "message": "Avatar upload failed: Check Supabase config."}, status=400)
                     messages.error(request, "Failed to upload profile picture.")
                     return redirect("core:manage_profile")
 
+            # --- URL GENERATION (Now runs only on success) ---
             print("--- SUPABASE DEBUG START ---")
-            print(f"File Path: {file_path}")
+            print(f"File Path: {full_file_path}")
             print(f"Bucket Name: {bucket_name}")
-            # --- GLOBAL FIX: ADD CACHE BUSTER TO URL ---
-            base_url = supabase.storage.from_(bucket_name).get_public_url(file_path)
+            
+            # Use the full path for the public URL retrieval
+            base_url = supabase.storage.from_(bucket_name).get_public_url(full_file_path) 
 
             if base_url.endswith('?'):
                 base_url = base_url[:-1]
             
-            # Append a unique timestamp to the URL to force the browser to refresh the image globally
+            # Final URL includes extension and cache buster
             public_url = f"{base_url}?cachebuster={int(time.time())}" 
 
-            print(f"Base URL (Should be valid): {base_url}")
             print(f"Final URL saved to DB: {public_url}")
             print("--- SUPABASE DEBUG END ---")
             
@@ -264,7 +279,6 @@ def manage_profile(request):
 
         # Return JSON response if AJAX request
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            # Optionally return the new URL to the client for immediate UI update without redirecting
             return JsonResponse({"status": "ok", "message": "Profile updated successfully.", "new_avatar_url": profile.avatar_url})
         
         # Regular form submission
@@ -279,6 +293,8 @@ def manage_profile(request):
 
 @login_required(login_url="core:login")
 def map_view(request):
+    profile = UserProfile.objects.get(user=request.user)
+
     query = request.GET.get("q", "")
     filter_by = request.GET.get("filter", "all")
 
@@ -300,11 +316,16 @@ def map_view(request):
     elif filter_by == "open24":
         study_spots = study_spots.filter(open_24_7=True)
 
-    return render(request, "map_view.html", {"study_spots": study_spots})
+    return render(request, "map_view.html", {
+        "study_spots": study_spots,
+        "profile": profile,
+    })
 
 
 @contributor_required
 def create_listing(request):
+    profile = UserProfile.objects.get(user=request.user)
+
     if request.method == 'POST':
         name = request.POST.get('name')
         location = request.POST.get('location')
@@ -333,7 +354,10 @@ def create_listing(request):
         messages.success(request, "✅ Listing successfully created!")
         return redirect('core:home')
 
-    return render(request, 'create_listing.html')
+    return render(request, 'create_listing.html', {
+        'profile': profile
+    })
+
 
 @contributor_required
 def my_listings(request):
@@ -343,6 +367,8 @@ def my_listings(request):
 
 @contributor_required
 def edit_listing(request, spot_id):
+    profile = UserProfile.objects.get(user=request.user)
+
     spot = get_object_or_404(StudySpot, id=spot_id)
     if request.method == "POST":
         form = StudySpotForm(request.POST, request.FILES, instance=spot)
@@ -352,7 +378,11 @@ def edit_listing(request, spot_id):
     else:
         form = StudySpotForm(instance=spot)
 
-    return render(request, 'edit_listing.html', {'form': form, 'spot': spot})
+    return render(request, 'edit_listing.html', {
+        'form': form,
+        'spot': spot,
+        'profile': profile,
+    })
 
 
 @contributor_required
@@ -374,7 +404,8 @@ def delete_listing(request, id):
 
 @login_required
 def apply_staff(request):
-    # Get existing application (if any)
+    profile = UserProfile.objects.get(user=request.user)
+
     application = StaffApplication.objects.filter(user=request.user).first()
 
     if request.method == "POST":
@@ -418,6 +449,7 @@ def apply_staff(request):
     return render(request, "apply_staff.html", {
         "form": form,
         "application": application,
+        "profile": profile,
     })
 
 def studyspot_detail(request, spot_id):
@@ -499,11 +531,11 @@ def check_username_uniqueness(request):
         # Check Django's User model if the username is already taken by ANY OTHER user.
         # This is the authoritative check.
         if User.objects.filter(username__iexact=username_to_check).exists():
-             is_available = False
-             message = "Username already taken."
+            is_available = False
+            message = "Username already taken."
         else:
-             is_available = True
-             message = "Username is available."
+            is_available = True
+            message = "Username is available."
 
         return JsonResponse({"is_available": is_available, "message": message}, status=200)
 

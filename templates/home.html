@@ -54,7 +54,7 @@
           <div class="user-dropdown">
             <button class="user-avatar" id="dropdownBtn">
               {% if user.userprofile.avatar_url %}
-                <img src="{{ user.userprofile.avatar_url.url }}" alt="Profile">
+                <img src="{{ user.userprofile.avatar_url }}" alt="Profile">
               {% else %}
                 <img src="{% static 'imgs/avatar_placeholder.jpg' %}" alt="Profile">
               {% endif %}
@@ -62,7 +62,7 @@
 
             <div class="dropdown-menu" id="userDropdown">
               <div class="dropdown-user">
-                <img src="{% if user.userprofile.avatar_url %}{{ user.userprofile.avatar_url.url }}{% else %}{% static 'imgs/avatar_placeholder.jpg' %}{% endif %}" alt="">
+                <img src="{% if user.userprofile.avatar_url %}{{ user.userprofile.avatar_url }}{% else %}{% static 'imgs/avatar_placeholder.jpg' %}{% endif %}" alt="">
                 <div>
                   <strong>{{ user.first_name }} {{ user.last_name }}</strong><br>
                   <small>{{ user.email }}</small>

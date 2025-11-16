@@ -18,6 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const usernameInput = document.getElementById("username");
     const emailInput = document.getElementById("email");
     const phoneInput = document.getElementById("phone_number");
+    const checkUsernameBtn = document.getElementById("checkUsernameBtn");
+
     // -------------------------
 
     // Global variables for uniqueness state and original value
@@ -239,8 +241,44 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
     
-    // --- USERNAME ASYNC CHECK ON BLUR ---
-    usernameInput?.addEventListener('blur', checkUsernameUniqueness);
+
+    checkUsernameBtn?.addEventListener("click", async () => {
+    const value = usernameInput.value.trim();
+
+    // Remove previous status messages
+    usernameInput.closest('.form-group')
+        ?.querySelectorAll('.error-message, .success-message')
+        .forEach(el => el.remove());
+
+    // If blank → do nothing
+    if (value === "") {
+        showTransientError(usernameInput, "Enter a username first.", true);
+        return;
+    }
+
+    // If unchanged → no need to check
+    if (value === originalUsername) {
+        showTransientError(usernameInput, "This is already your current username.", false);
+        isUsernameUnique = true;
+        return;
+    }
+
+    // Disable button visually
+    checkUsernameBtn.disabled = true;
+    checkUsernameBtn.textContent = "Checking...";
+
+    // Run the async check
+    await checkUsernameUniqueness();
+
+    // Re-enable button
+    checkUsernameBtn.disabled = false;
+    checkUsernameBtn.textContent = "Check";
+
+    // Re-check form changes after checking
+    checkFormChanges();
+});
+
+
 
     // Phone Number Auto-Spacing and Prefix Enforcement (No change)
     phoneInput?.addEventListener('input', function() {
