@@ -898,3 +898,35 @@ body {
   background-color: #1b5e20;
 }
 
+.username-check-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.username-check-wrapper input {
+    flex: 1;
+}
+
+.check-btn {
+    padding: 8px 14px;
+    background: #66BB6A;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+    white-space: nowrap;
+}
+
+.check-btn:hover {
+    background: #337536;
+
+}
+
+.check-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}

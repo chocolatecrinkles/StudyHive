@@ -115,10 +115,26 @@
             <h3>Account Details</h3>
           </div>
           <div class="card-body">
-            <div class="form-group">
-              <label for="username">Username</label>
-              <input id="username" type="text" name="username" value="{{ request.user.username }}" required autocomplete="username">
-            </div>
+            <div class="form-group username-group">
+                <label for="username">Username</label>
+
+                <div class="username-check-wrapper">
+                  <input 
+                      id="username" 
+                      type="text" 
+                      name="username" 
+                      value="{{ request.user.username }}" 
+                      required 
+                      autocomplete="username"
+                  >
+
+                  <button type="button" id="checkUsernameBtn" class="check-btn">
+                      Check
+                  </button>
+                </div>
+                <div class="field-hint">Choose a unique username.</div>
+              </div>
+
 
             <div class="form-group">
               <label for="email">Email Address</label>
