@@ -28,13 +28,19 @@
 
     <!-- Spot Info -->
     <section class="spot-container">
+
+
+      
       <div class="spot-image-container">
-        {% if spot.image %}
-          <img src="{{ spot.image.url }}" alt="{{ spot.name }}" class="spot-image">
+
+        {% if spot.image_url %}
+          <img src="{{ spot.image_url }}" alt="{{ spot.name }}" class="spot-image">
         {% else %}
           <img src="{% static 'imgs/placeholder.png' %}" alt="No image available" class="spot-image">
         {% endif %}
       </div>
+
+
 
       <div class="spot-info">
         <h2 class="spot-name">{{ spot.name }}</h2>

@@ -47,13 +47,26 @@
           <textarea name="description" id="description" rows="4" class="form-control" required>{{ spot.description }}</textarea>
         </div>
 
+
+
+
         <div class="form-group">
-          <label>Image</label>
-          {% if spot.image %}
-            <img src="{{ spot.image.url }}" alt="{{ spot.name }}" style="width:100%;border-radius:8px;margin-bottom:1rem;">
-          {% endif %}
-          <input type="file" name="image" id="image" class="form-control">
-        </div>
+  <label>Image</label>
+
+  {% if spot.image_url %}
+    <img src="{{ spot.image_url }}" alt="{{ spot.name }}" 
+         style="width:100%;border-radius:8px;margin-bottom:1rem;">
+  {% endif %}
+
+  <!-- File input (upload to Supabase via JS) -->
+  <input type="file" id="image_file" class="form-control">
+
+  <!-- Hidden field where Supabase URL will be stored -->
+  <input type="hidden" name="image_url" id="image_url" value="{{ spot.image_url }}">
+</div>
+
+
+
 
         <div class="form-group">
           <label><i class="fas fa-wifi"></i> Amenities</label>
@@ -85,5 +98,39 @@
       </form>
     </main>
   </div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "{{ SUPABASE_URL }}";
+const SUPABASE_KEY = "{{ SUPABASE_KEY }}";
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+document.getElementById("image_file").addEventListener("change", async function(e){
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const path = `studyspots/${Date.now()}_${file.name}`;
+
+    let { data, error } = await client.storage
+      .from("studyspots")
+      .upload(path, file);
+
+    if (error) {
+        alert("Upload failed: " + error.message);
+        return;
+    }
+
+    const { data: urlData } = client.storage
+      .from("studyspots")
+      .getPublicUrl(path);
+
+    document.getElementById("image_url").value = urlData.publicUrl;
+});
+</script>
+
+
+
+
 </body>
 </html>

@@ -12,7 +12,7 @@ COMMON_INPUT_CLASSES = (
     "placeholder:text-gray-400 focus:outline-none focus:border-yellow-300 "
     "focus:ring-4 focus:ring-yellow-100 transition-all duration-200"
 )
-
+ 
 LABEL_CLASSES = (
     "block text-sm font-[Nunito_Sans] font-bold text-[#4B4B4B] tracking-wide mb-1 capitalize"
 )
@@ -20,16 +20,17 @@ class StudySpotForm(forms.ModelForm):
     class Meta:
         model = StudySpot
         fields = [
-            'name',
-            'location',
-            'description',
-            'image',
-            'wifi',
-            'open_24_7',
-            'outlets',
-            'coffee',
-            'ac',
-            'pastries',
+            "name",
+            "location",
+            "description",
+            "wifi",
+            "ac",
+            "free",
+            "coffee",
+            "open_24_7",
+            "outlets",
+            "pastries",
+            "is_trending",
         ]
 
         widgets = {

@@ -28,13 +28,13 @@ class StaffApplicationAdmin(admin.ModelAdmin):
 @admin.register(StudySpot)
 class StudySpotAdmin(admin.ModelAdmin):
     list_display = (
-        "name", "owner", "wifi", "open_24_7", "outlets", "coffee", "ac", "pastries", "rating", "is_trending"
+        "name", "owner", "wifi", "open_24_7", "outlets", "coffee", "ac", "pastries", "is_trending"
     )
     list_filter = ("wifi", "open_24_7", "outlets", "coffee", "ac", "pastries", "is_trending")
     search_fields = ("name", "location", "description")
     fieldsets = (
         (None, {
-            "fields": ("owner", "name", "location", "description", "image", "rating")
+            "fields": ("owner", "name", "location", "description", "image_url")
         }),
         ("Amenities", {
             "fields": ("wifi", "open_24_7", "outlets", "coffee", "ac", "pastries")
@@ -220,23 +220,61 @@ def manage_profile(request):
 
 @login_required(login_url="core:login")
 def map_view(request):
-    return render(request, "map_view.html")
+    spots = StudySpot.objects.all()
+    return render(request, "map_view.html", {
+        "study_spots": spots
+    })
+
+
+
+
+
+
+
+
+
 
 
 @staff_required
 def create_listing(request):
     if request.method == 'POST':
-        name = request.POST.get('name')
-        location = request.POST.get('location')
-        description = request.POST.get('description')
+        # regular fields
+        name = request.POST.get('name', '').strip()
+        location = request.POST.get('location', '').strip()
+        description = request.POST.get('description', '').strip()
+
         wifi = request.POST.get('wifi') == 'on'
         ac = request.POST.get('ac') == 'on'
         free = request.POST.get('free') == 'on'
         coffee = request.POST.get('coffee') == 'on'
-        rating = request.POST.get('rating')
-        image = request.FILES.get('image')
 
-        # ✅ Save the record to Supabase DB
+        open_24_7 = request.POST.get('open_24_7') == 'on'
+        outlets = request.POST.get('outlets') == 'on'
+        pastries = request.POST.get('pastries') == 'on'
+        is_trending = request.POST.get('is_trending') == 'on'
+
+        image_file = request.FILES.get('image')
+        image_url = None
+
+        # ── Upload to Supabase if file present ────────────────────────────
+        if image_file:
+            try:
+                file_bytes = image_file.read()
+                # path: study_spots/<user_id>/<original_filename>
+                path = f"study_spots/{request.user.id}/{image_file.name}"
+
+                bucket = supabase.storage.from_("study_spots")
+                bucket.upload(path, file_bytes, {
+                    "content-type": image_file.content_type
+                })
+
+                public_url = bucket.get_public_url(path)
+                image_url = public_url
+            except Exception as e:
+                messages.error(request, f"Error uploading image: {e}")
+                image_url = None
+
+        # ── Save StudySpot row ─────────────────────────────────────────────
         StudySpot.objects.create(
             owner=request.user,
             name=name,
@@ -246,14 +284,32 @@ def create_listing(request):
             ac=ac,
             free=free,
             coffee=coffee,
-            rating=0,
-            image=image
+            open_24_7=open_24_7,
+            outlets=outlets,
+            pastries=pastries,
+            is_trending=is_trending,
+            image_url=image_url,
         )
 
         messages.success(request, "✅ Listing successfully created!")
         return redirect('core:home')
 
-    return render(request, 'create_listing.html')
+    # GET – show blank form
+    form = StudySpotForm()
+    return render(request, 'create_listing.html', {'form': form})
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @staff_required
 def my_listings_view(request):
@@ -262,27 +318,61 @@ def my_listings_view(request):
 
 
 
+
+
+
+
+
+
 @staff_required
 def edit_listing(request, id):
     spot = get_object_or_404(StudySpot, id=id)
 
-    # --- CRITICAL SECURITY CHECK ---
+    # security check: only owner can edit
     if spot.owner != request.user:
         messages.error(request, "You are not authorized to edit this listing.")
         return redirect('core:my_listings')
-    # --- END OF CHECK ---
 
     if request.method == 'POST':
-        form = StudySpotForm(request.POST, request.FILES, instance=spot)
+        form = StudySpotForm(request.POST, instance=spot)
+        image_file = request.FILES.get('image')
         if form.is_valid():
-            form.save() 
+            spot = form.save(commit=False)
+
+            # ── if a new image was uploaded, push to Supabase ────────────
+            if image_file:
+                try:
+                    file_bytes = image_file.read()
+                    path = f"study_spots/{request.user.id}/{image_file.name}"
+
+                    bucket = supabase.storage.from_("study_spots")
+                    bucket.upload(path, file_bytes, {
+                        "content-type": image_file.content_type
+                    })
+
+                    public_url = bucket.get_public_url(path)
+                    spot.image_url = public_url
+                except Exception as e:
+                    messages.error(request, f"Error uploading new image: {e}")
+
+            spot.save()
             messages.success(request, "Listing updated successfully.")
             return redirect('core:my_listings')
     else:
-        form = StudySpotForm(instance=spot) 
+        form = StudySpotForm(instance=spot)
 
-    # Pass the form and spot to the template
     return render(request, 'edit_listing.html', {'form': form, 'spot': spot})
+
+
+
+
+
+
+
+
+
+
+
 
 @staff_required
 def delete_listing(request, id):

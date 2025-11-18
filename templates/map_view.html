@@ -101,9 +101,9 @@
            data-spot-id="{{ spot.id }}"
            data-name="{{ spot.name|escape }}"
            data-location="{{ spot.location|escape }}"
-           data-rating="{{ spot.average_rating|default_if_none:spot.rating|default_if_none:0|floatformat:1 }}"
+           data-rating="{{ spot.average_rating|default_if_none:0|floatformat:1 }}"
            data-status="{% if spot.open_24_7 %}open{% else %}closed{% endif %}"
-           data-image="{% if spot.image %}{{ spot.image.url }}{% else %}{% static 'imgs/map_placeholder.jpg' %}{% endif %}"
+           data-image="{% if spot.image_url %}{{ spot.image_url }}{% else %}{% static 'imgs/map_placeholder.jpg' %}{% endif %}"
            data-detail-url="{% url 'core:studyspot_detail' spot.id %}"
            data-wifi="{{ spot.wifi }}"
            data-open24="{{ spot.open_24_7 }}"
@@ -116,11 +116,12 @@
           <div class="spot-card">
             <div class="spot-image">
 ...
-              {% if spot.image %}
-                <img src="{{ spot.image.url }}" alt="{{ spot.name }}">
+              {% if spot.image_url %}
+                <img src="{{ spot.image_url }}" alt="{{ spot.name }}">
               {% else %}
                 <img src="{% static 'imgs/map_placeholder.jpg' %}" alt="Placeholder image">
               {% endif %}
+
   
               <span class="status-badge {% if spot.open_24_7 %}open{% else %}closed{% endif %}">
                 {% if spot.open_24_7 %}Open{% else %}Closed{% endif %}

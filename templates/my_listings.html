@@ -33,8 +33,8 @@
         {% if my_listings %}
           {% for spot in my_listings %}
             <div class="card">
-              {% if spot.image %}
-                <img src="{{ spot.image.url }}" alt="{{ spot.name }}">
+              {% if spot.image_url %}
+                <img src="{{ spot.image_url }}" alt="{{ spot.name }}">
               {% else %}
                 <img src="{% static 'imgs/placeholder.png' %}" alt="Placeholder">
               {% endif %}

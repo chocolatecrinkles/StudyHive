@@ -21,42 +21,33 @@ class StudySpot(models.Model):
     name = models.CharField(max_length=255)
     location = models.CharField(max_length=255)
     description = models.TextField()
+
     wifi = models.BooleanField(default=False)
     ac = models.BooleanField(default=False)
     free = models.BooleanField(default=False)
     coffee = models.BooleanField(default=False)
-    rating = models.DecimalField(max_digits=3, decimal_places=1, default=0)
-    image = models.ImageField(upload_to='studyspots/', blank=True, null=True)
+
+    # ONLY ONE image_url
+    image_url = models.CharField(max_length=500, blank=True, null=True)
+
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='listings')
-    
-    #tagged / filter??? basta inig search
-    wifi = models.BooleanField(default=False)
+
     open_24_7 = models.BooleanField(default=False)
     outlets = models.BooleanField(default=False)
-    coffee = models.BooleanField(default=False)
-    ac = models.BooleanField(default=False)
     pastries = models.BooleanField(default=False)
-
     is_trending = models.BooleanField(default=False)
-    average_rating = models.DecimalField(
-        max_digits=3, decimal_places=2, default=0.00
-    )
+
+    average_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
 
     def update_average_rating(self):
-        """
-        Calculate and update the average rating for this spot.
-        """
-        # 'reviews' is the related_name we set on the Review model
         average = self.reviews.aggregate(Avg('rating'))['rating__avg']
-        
-        if average is not None:
-            self.average_rating = round(average, 2)
-        else:
-            self.average_rating = 0.00
+        self.average_rating = round(average or 0, 2)
         self.save()
 
-    def __str__(self):
-        return self.name
+
+
+
+
 
 class StaffApplication(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

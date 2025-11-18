@@ -1,44 +1,50 @@
+# core/views.py
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import login, logout, get_user_model
-from core.forms import CustomUserCreationForm, CustomAuthenticationForm
-from .models import UserProfile 
 from django.http import JsonResponse
-from core.models import StudySpot
 from django.core.exceptions import PermissionDenied
-from .models import StaffApplication
-from .forms import StaffApplicationForm, StudySpotForm, ReviewForm
 from django.db.models import Q
-from .models import Review 
-import time
-from django.conf import settings
-from django.contrib.staticfiles.storage import staticfiles_storage
 
-# --- SUPABASE/PYTHON SETUP ---
+from .models import UserProfile, StaffApplication, Review
+from core.models import StudySpot
+from .forms import (
+    CustomUserCreationForm,
+    CustomAuthenticationForm,
+    StaffApplicationForm,
+    StudySpotForm,
+    ReviewForm,
+)
+
+from django.conf import settings
+
 import os
 import json
+import time
+
+# --- SUPABASE / STORAGE SETUP ---
 from supabase import create_client, Client
-from dotenv import load_dotenv 
 
-SUPABASE_URL = os.getenv("SUPABASE_URL") 
+SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Initialize Supabase client once
 try:
     if SUPABASE_URL and SUPABASE_KEY:
         supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
     else:
-        # Handle case where environment variables are missing
         supabase = None
         print("WARNING: Supabase credentials not found in environment variables.")
 except Exception as e:
     supabase = None
     print(f"ERROR initializing Supabase client: {e}")
 
-
 User = get_user_model()
-# --- END SUPABASE/PYTHON SETUP ---
+
+
+# ---------- HELPERS ----------
 
 def contributor_required(view_func):
     @login_required
@@ -47,7 +53,49 @@ def contributor_required(view_func):
         if not profile or not profile.is_contributor:
             raise PermissionDenied("You are not authorized to access this page.")
         return view_func(request, *args, **kwargs)
+
     return wrapper
+
+
+def upload_studyspot_image(image_file, spot_id):
+    """
+    Upload a listing image to Supabase Storage (bucket: study_spots)
+    and return the public URL. Returns None on failure.
+    """
+    if not supabase:
+        print("Supabase client not initialized.")
+        return None
+
+    if not image_file:
+        return None
+
+    bucket_name = "study_spots"  
+
+    # Build path: spots/<spot_id>/main.<ext>
+    ext = os.path.splitext(image_file.name)[1] or ".jpg"
+    path = f"spots/{spot_id}/main{ext}"
+
+    try:
+        image_file.seek(0)
+        file_content = image_file.read()
+
+        supabase.storage.from_(bucket_name).upload(
+            path=path,
+            file=file_content,
+            file_options={"content-type": image_file.content_type},
+        )
+
+        public_url = supabase.storage.from_(bucket_name).get_public_url(path)
+        # Optional cache-buster so browser sees updated image if overwritten
+        public_url = f"{public_url}?v={int(time.time())}"
+        return public_url
+
+    except Exception as e:
+        print(f"[StudySpot Image Upload Error] {e}")
+        return None
+
+
+# ---------- AUTH / ACCOUNT VIEWS ----------
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -64,8 +112,33 @@ def login_view(request):
             messages.error(request, "Invalid credentials.")
     else:
         form = CustomAuthenticationForm()
+
     return render(request, "login.html", {"form": form})
 
+
+def logout_view(request):
+    logout(request)
+    messages.info(request, "You have been logged out.")
+    return redirect("core:login")
+
+
+def register_view(request):
+    if request.method == "POST":
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, "Account created successfully!")
+            return redirect("core:home")
+        else:
+            messages.error(request, "Please fix the errors below.")
+    else:
+        form = CustomUserCreationForm()
+
+    return render(request, "register.html", {"form": form})
+
+
+# ---------- HOME / MAP ----------
 
 @login_required(login_url="core:login")
 def home(request):
@@ -76,15 +149,15 @@ def home(request):
 
     study_spaces = StudySpot.objects.all()
 
-    # 🔎 Apply search (name, location, description)
+    # Search
     if query:
         study_spaces = study_spaces.filter(
-            Q(name__icontains=query) |
-            Q(location__icontains=query) |
-            Q(description__icontains=query)
+            Q(name__icontains=query)
+            | Q(location__icontains=query)
+            | Q(description__icontains=query)
         )
 
-    # 🧭 Apply filters (wifi, ac, coffee, etc.)
+    # Filters
     if filter_by == "wifi":
         study_spaces = study_spaces.filter(wifi=True)
     elif filter_by == "ac":
@@ -100,196 +173,14 @@ def home(request):
     elif filter_by == "trending":
         study_spaces = study_spaces.filter(is_trending=True)
 
-    return render(request, "home.html", {
+    context = {
         "study_spaces": study_spaces,
         "query": query,
         "filter_by": filter_by,
         "profile": profile,
-    })
-
-
-def logout_view(request):
-    logout(request)
-    messages.info(request, "You have been logged out.")
-    return redirect("core:login") 
-
-
-def register_view(request):
-    if request.method == "POST":
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, "Account created successfully!")
-            return redirect("core:home") 
-        else:
-            messages.error(request, "Please fix the errors below.")
-    else:
-        form = CustomUserCreationForm()
-    return render(request, "register.html", {"form": form})
-
-
-@login_required(login_url='core:login')
-def profile_view(request):
-    profile, created = UserProfile.objects.get_or_create(user=request.user)
-
-    return render(request, "profile.html", {
-        "profile": profile,
-        "user": request.user
-    })
-
-
-
-@login_required(login_url='core:login')
-def manage_profile(request):
-    profile, _ = UserProfile.objects.get_or_create(user=request.user)
-
-    if request.method == "POST":
-        # --- 1. Get Form Data ---
-        first_name = request.POST.get("first_name", "").strip()
-        last_name = request.POST.get("last_name", "").strip()
-        username = request.POST.get("username", "").strip()
-        email = request.POST.get("email", "").strip()
-        middle_initial = request.POST.get("middle_initial", "").strip()
-        phone_number = request.POST.get("phone_number", "").strip()
-        bio = request.POST.get("bio", "").strip()
-        
-        avatar = request.FILES.get("avatar")
-        avatar_removed = request.POST.get("avatar_removed")
-        
-        # --- FIX LOCATION 1: Define Path and Extension Universally ---
-        bucket_name = "avatars" # Must match your Supabase bucket casing
-        file_extension = ""
-        if avatar:
-            file_extension = os.path.splitext(avatar.name)[1]
-            
-        # This is the base path for storage (without the extension)
-        file_path_for_storage = f"users/{request.user.id}/avatar_final" 
-        # The full path that will actually be used for the file in storage (e.g., .../avatar_final.png)
-        full_file_path = f"users/{request.user.id}/avatar_final{file_extension}" 
-        # -------------------------------------------------------------
-
-        # Validate required fields (minimal check)
-        if not first_name or not last_name or not username or not email:
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({"status": "error", "message": "First name, last name, username, and email are required."}, status=400)
-            messages.error(request, "First name, last name, username, and email are required.")
-            return redirect("core:manage_profile")
-
-        # Update user fields
-        user = request.user
-        user.first_name = first_name
-        user.last_name = last_name
-        user.username = username
-        user.email = email
-        
-        try:
-            user.save()
-        except Exception as e:
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({"status": "error", "message": str(e), "errors": {"username": ["This username may already be taken."]}}, status=400)
-            messages.error(request, f"Update failed: {e}")
-            return redirect("core:manage_profile")
-
-
-        # Update profile fields
-        profile.middle_initial = middle_initial
-        profile.phone_number = phone_number
-        profile.bio = bio
-
-        # --- 2. AVATAR HANDLING (Upload/Update Logic) ---
-        
-        if avatar_removed == 'true':
-            placeholder_path = settings.STATIC_URL + 'imgs/avatar_placeholder.jpg'
-            profile.avatar_url = placeholder_path
-            
-        elif avatar:
-            if supabase is None:
-                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                    return JsonResponse({"status": "error", "message": "Supabase client not initialized. Cannot upload file."}, status=500)
-                messages.error(request, "File storage service is unavailable.")
-                return redirect("core:manage_profile")
-
-            # Read file content
-            avatar.file.seek(0)
-            file_content = avatar.file.read() 
-
-            try:
-                # Attempt 1: Use .update() for overwriting (file_path is now full_file_path)
-                supabase.storage.from_(bucket_name).update(
-                    file=file_content,
-                    path=full_file_path,
-                    file_options={"content-type": avatar.content_type}
-                )
-                
-            except Exception as e:
-                # Fallback logic for first-time upload or if update fails
-                if "not found" in str(e).lower() and "bucket" not in str(e).lower(): 
-                    
-                    # Reset content stream pointer and try Fallback Upload
-                    avatar.file.seek(0)
-                    file_content = avatar.file.read() 
-
-                    try:
-                        # Fallback Attempt 2: Use .upload()
-                        supabase.storage.from_(bucket_name).upload(
-                            file=file_content,
-                            path=full_file_path, # Use the full path here too
-                            file_options={"content-type": avatar.content_type}
-                        )
-                    except Exception as upload_e:
-                        print(f"Supabase Profile Picture Upload Error (Fallback): {upload_e}")
-                        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                            return JsonResponse({"status": "error", "message": "Avatar upload failed."}, status=400)
-                        messages.error(request, "Failed to upload profile picture.")
-                        return redirect("core:manage_profile")
-                
-                else:
-                    # Catch all other critical errors (RLS failure, etc.)
-                    print(f"Supabase Profile Picture Critical Error: {e}")
-                    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                        return JsonResponse({"status": "error", "message": "Avatar upload failed: Check Supabase config."}, status=400)
-                    messages.error(request, "Failed to upload profile picture.")
-                    return redirect("core:manage_profile")
-
-            # --- URL GENERATION (Now runs only on success) ---
-            print("--- SUPABASE DEBUG START ---")
-            print(f"File Path: {full_file_path}")
-            print(f"Bucket Name: {bucket_name}")
-            
-            # Use the full path for the public URL retrieval
-            base_url = supabase.storage.from_(bucket_name).get_public_url(full_file_path) 
-
-            if base_url.endswith('?'):
-                base_url = base_url[:-1]
-            
-            # Final URL includes extension and cache buster
-            public_url = f"{base_url}?cachebuster={int(time.time())}" 
-
-            print(f"Final URL saved to DB: {public_url}")
-            print("--- SUPABASE DEBUG END ---")
-            
-            profile.avatar_url = public_url # Saves the unique URL to the database
-
-        # --- END AVATAR HANDLING ---
-
-        # Update full name and save profile
-        profile.full_name = f"{first_name} {middle_initial} {last_name}".strip()
-        profile.save()
-
-        # Return JSON response if AJAX request
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            return JsonResponse({"status": "ok", "message": "Profile updated successfully.", "new_avatar_url": profile.avatar_url})
-        
-        # Regular form submission
-        messages.success(request, "Profile updated successfully.")
-        return redirect("core:profile")
-
-    context = {
-        "profile": profile,
-        "user": request.user,
     }
-    return render(request, "manage_profile.html", context)
+    return render(request, "home.html", context)
+
 
 @login_required(login_url="core:login")
 def map_view(request):
@@ -302,9 +193,9 @@ def map_view(request):
 
     if query:
         study_spots = study_spots.filter(
-            Q(name__icontains=query) |
-            Q(location__icontains=query) |
-            Q(description__icontains=query)
+            Q(name__icontains=query)
+            | Q(location__icontains=query)
+            | Q(description__icontains=query)
         )
 
     if filter_by == "wifi":
@@ -316,29 +207,148 @@ def map_view(request):
     elif filter_by == "open24":
         study_spots = study_spots.filter(open_24_7=True)
 
-    return render(request, "map_view.html", {
-        "study_spots": study_spots,
-        "profile": profile,
-    })
+    return render(
+        request,
+        "map_view.html",
+        {"study_spots": study_spots, "profile": profile},
+    )
 
+
+# ---------- PROFILE ----------
+
+@login_required(login_url="core:login")
+def profile_view(request):
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    return render(
+        request,
+        "profile.html",
+        {
+            "profile": profile,
+            "user": request.user,
+        },
+    )
+
+
+@login_required(login_url="core:login")
+def manage_profile(request):
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == "POST":
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip()
+        middle_initial = request.POST.get("middle_initial", "").strip()
+        phone_number = request.POST.get("phone_number", "").strip()
+        bio = request.POST.get("bio", "").strip()
+
+        avatar = request.FILES.get("avatar")
+        avatar_removed = request.POST.get("avatar_removed")
+
+        bucket_name = "avatars"
+        file_extension = ""
+        if avatar:
+            file_extension = os.path.splitext(avatar.name)[1]
+
+        full_file_path = f"users/{request.user.id}/avatar_final{file_extension}"
+
+        if not first_name or not last_name or not username or not email:
+            messages.error(
+                request,
+                "First name, last name, username, and email are required.",
+            )
+            return redirect("core:manage_profile")
+
+        user = request.user
+        user.first_name = first_name
+        user.last_name = last_name
+        user.username = username
+        user.email = email
+
+        try:
+            user.save()
+        except Exception as e:
+            messages.error(request, f"Update failed: {e}")
+            return redirect("core:manage_profile")
+
+        profile.middle_initial = middle_initial
+        profile.phone_number = phone_number
+        profile.bio = bio
+
+        # Avatar handling
+        if avatar_removed == "true":
+            placeholder_path = settings.STATIC_URL + "imgs/avatar_placeholder.jpg"
+            profile.avatar_url = placeholder_path
+
+        elif avatar:
+            if not supabase:
+                messages.error(request, "File storage service is unavailable.")
+                return redirect("core:manage_profile")
+
+            avatar.file.seek(0)
+            file_content = avatar.file.read()
+
+            try:
+                supabase.storage.from_(bucket_name).update(
+                    file=file_content,
+                    path=full_file_path,
+                    file_options={"content-type": avatar.content_type},
+                )
+            except Exception as e:
+                # Fallback: upload if file doesn't exist yet
+                try:
+                    avatar.file.seek(0)
+                    file_content = avatar.file.read()
+                    supabase.storage.from_(bucket_name).upload(
+                        file=file_content,
+                        path=full_file_path,
+                        file_options={"content-type": avatar.content_type},
+                    )
+                except Exception as upload_e:
+                    print(f"Avatar upload error: {upload_e}")
+                    messages.error(request, "Failed to upload profile picture.")
+                    return redirect("core:manage_profile")
+
+            base_url = supabase.storage.from_(bucket_name).get_public_url(
+                full_file_path
+            )
+            if base_url.endswith("?"):
+                base_url = base_url[:-1]
+            public_url = f"{base_url}?cachebuster={int(time.time())}"
+            profile.avatar_url = public_url
+
+        profile.full_name = f"{first_name} {middle_initial} {last_name}".strip()
+        profile.save()
+
+        messages.success(request, "Profile updated successfully.")
+        return redirect("core:profile")
+
+    return render(
+        request,
+        "manage_profile.html",
+        {"profile": profile, "user": request.user},
+    )
+
+
+# ---------- LISTINGS (CREATE / READ / UPDATE / DELETE) ----------
 
 @contributor_required
 def create_listing(request):
     profile = UserProfile.objects.get(user=request.user)
 
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        location = request.POST.get('location')
-        description = request.POST.get('description')
-        wifi = request.POST.get('wifi') == 'on'
-        ac = request.POST.get('ac') == 'on'
-        free = request.POST.get('free') == 'on'
-        coffee = request.POST.get('coffee') == 'on'
-        rating = request.POST.get('rating')
-        image = request.FILES.get('image')
+    if request.method == "POST":
+        name = request.POST.get("name")
+        location = request.POST.get("location")
+        description = request.POST.get("description")
+        wifi = request.POST.get("wifi") == "on"
+        ac = request.POST.get("ac") == "on"
+        free = request.POST.get("free") == "on"
+        coffee = request.POST.get("coffee") == "on"
 
-        # ✅ Save the record to Supabase DB
-        StudySpot.objects.create(
+        image_file = request.FILES.get("image")
+
+        # Create spot first (without image_url)
+        spot = StudySpot.objects.create(
             owner=request.user,
             name=name,
             location=location,
@@ -347,65 +357,95 @@ def create_listing(request):
             ac=ac,
             free=free,
             coffee=coffee,
-            rating=0,
-            image=image
+            image_url=None,
         )
 
-        messages.success(request, "✅ Listing successfully created!")
-        return redirect('core:home')
+        # Upload to Supabase
+        if image_file:
+            public_url = upload_studyspot_image(image_file, spot.id)
+            if public_url:
+                spot.image_url = public_url
+                spot.save()
+            else:
+                messages.warning(
+                    request, "Listing created, but image upload failed."
+                )
 
-    return render(request, 'create_listing.html', {
-        'profile': profile
-    })
+        messages.success(request, "Listing successfully created!")
+        return redirect("core:home")
+
+    return render(request, "create_listing.html", {"profile": profile})
 
 
 @contributor_required
 def my_listings(request):
-    my_listings = StudySpot.objects.filter(owner=request.user).order_by('-id')
-    return render(request, 'my_listings.html', {'my_listings': my_listings})
+    my_listings = StudySpot.objects.filter(owner=request.user).order_by("-id")
+    return render(request, "my_listings.html", {"my_listings": my_listings})
 
 
 @contributor_required
 def edit_listing(request, spot_id):
     profile = UserProfile.objects.get(user=request.user)
-
     spot = get_object_or_404(StudySpot, id=spot_id)
-    if request.method == "POST":
-        form = StudySpotForm(request.POST, request.FILES, instance=spot)
-        if form.is_valid():
-            form.save()
-            return redirect('core:my_listings')
-    else:
-        form = StudySpotForm(instance=spot)
 
-    return render(request, 'edit_listing.html', {
-        'form': form,
-        'spot': spot,
-        'profile': profile,
-    })
+    if request.method == "POST":
+        name = request.POST.get("name")
+        location = request.POST.get("location")
+        description = request.POST.get("description")
+        wifi = request.POST.get("wifi") == "on"
+        ac = request.POST.get("ac") == "on"
+        free = request.POST.get("free") == "on"
+        coffee = request.POST.get("coffee") == "on"
+
+        image_file = request.FILES.get("image")
+
+        spot.name = name
+        spot.location = location
+        spot.description = description
+        spot.wifi = wifi
+        spot.ac = ac
+        spot.free = free
+        spot.coffee = coffee
+
+        if image_file:
+            public_url = upload_studyspot_image(image_file, spot.id)
+            if public_url:
+                spot.image_url = public_url
+            else:
+                messages.warning(
+                    request, "Details updated, but image upload failed."
+                )
+
+        spot.save()
+        return redirect("core:my_listings")
+
+    return render(
+        request,
+        "edit_listing.html",
+        {"spot": spot, "profile": profile},
+    )
 
 
 @contributor_required
 def delete_listing(request, id):
     spot = get_object_or_404(StudySpot, id=id)
 
-    # ---CRITICAL SECURITY CHECK ---
     if spot.owner != request.user:
         messages.error(request, "You are not authorized to delete this listing.")
-        return redirect('core:my_listings')
-    # --- END OF CHECK ---
+        return redirect("core:my_listings")
 
     if request.method == "POST":
         spot.delete()
         messages.success(request, "Listing successfully deleted.")
-    
+
     return redirect("core:my_listings")
 
+
+# ---------- STAFF APPLICATION ----------
 
 @login_required
 def apply_staff(request):
     profile = UserProfile.objects.get(user=request.user)
-
     application = StaffApplication.objects.filter(user=request.user).first()
 
     if request.method == "POST":
@@ -416,120 +456,124 @@ def apply_staff(request):
             app.status = "Pending"
             app.save()
 
-            # Upload each file field to Supabase Storage
-            file_fields = ["government_id", "proof_of_ownership", "proof_of_address"]
-            for field_name in file_fields:
-                uploaded_file = request.FILES.get(field_name)
-                if uploaded_file:
-                    path = f"staff_docs/{field_name}/{uploaded_file.name}"
-                    file_content = uploaded_file.read()
-                    supabase.storage.from_("staff_docs").upload(path, file_content)
+            # optional: upload docs to "staff_docs" bucket if you want
+            if supabase:
+                file_fields = ["government_id", "proof_of_ownership", "proof_of_address"]
+                for field_name in file_fields:
+                    uploaded_file = request.FILES.get(field_name)
+                    if uploaded_file:
+                        path = f"staff_docs/{field_name}/{uploaded_file.name}"
+                        file_content = uploaded_file.read()
+                        supabase.storage.from_("staff_docs").upload(
+                            path, file_content
+                        )
+                        public_url = supabase.storage.from_(
+                            "staff_docs"
+                        ).get_public_url(path)
+                        setattr(app, field_name, public_url)
+                app.save()
 
-                    # Generate public URL for the uploaded file
-                    public_url = supabase.storage.from_("staff_docs").get_public_url(path)
-                    setattr(app, field_name, public_url)
+            return render(
+                request,
+                "apply_staff.html",
+                {"submitted": True, "application": app},
+            )
 
-            app.save()
-
-            return render(request, "apply_staff.html", {
-                "submitted": True,
-                "application": app,
-            })
-
-        else:
-            return render(request, "apply_staff.html", {
+        return render(
+            request,
+            "apply_staff.html",
+            {
                 "form": form,
                 "application": application,
                 "error": "Please check your form fields and try again.",
-            })
+            },
+        )
 
     else:
         form = StaffApplicationForm(instance=application)
 
-    return render(request, "apply_staff.html", {
-        "form": form,
-        "application": application,
-        "profile": profile,
-    })
+    return render(
+        request,
+        "apply_staff.html",
+        {"form": form, "application": application, "profile": profile},
+    )
+
+
+# ---------- STUDYSPOT DETAIL / REVIEWS ----------
 
 def studyspot_detail(request, spot_id):
     spot = get_object_or_404(StudySpot, id=spot_id)
-    reviews = spot.reviews.all().order_by('-created_at') # Get existing reviews
-    
-    if request.method == 'POST':
-        # Check if user is authenticated
+    reviews = spot.reviews.all().order_by("-created_at")
+
+    if request.method == "POST":
         if not request.user.is_authenticated:
             messages.error(request, "You must be logged in to post a review.")
-            return redirect('core:login') 
+            return redirect("core:login")
 
         form = ReviewForm(request.POST)
-        
         if form.is_valid():
-            # Check if user has already reviewed this spot
             if Review.objects.filter(spot=spot, user=request.user).exists():
-                messages.error(request, "You have already submitted a review for this spot.")
+                messages.error(
+                    request,
+                    "You have already submitted a review for this spot.",
+                )
             else:
                 review = form.save(commit=False)
                 review.spot = spot
                 review.user = request.user
                 review.save()
-                
-                # --- THIS IS THE KEY ---
-                # Recalculate and save the new average rating
                 spot.update_average_rating()
-                
                 messages.success(request, "Your review has been submitted!")
-                return redirect('core:studyspot_detail', spot_id=spot.id)
+                return redirect("core:studyspot_detail", spot_id=spot.id)
         else:
             messages.error(request, "There was an error with your submission.")
-
     else:
-        # This is a GET request, so just show a blank form
         form = ReviewForm()
 
-    context = {
-        'spot': spot,
-        'reviews': reviews,
-        'form': form,
-    }
-    return render(request, 'studyspot_detail.html', context)
+    return render(
+        request,
+        "studyspot_detail.html",
+        {"spot": spot, "reviews": reviews, "form": form},
+    )
+
 
 def trending_studyspots(request):
     trending_spots = StudySpot.objects.filter(is_trending=True)
-    return render(request, 'core/trending.html', {'trending_spots': trending_spots})
+    return render(
+        request,
+        "core/trending.html",
+        {"trending_spots": trending_spots},
+    )
 
-# --- THE CORRECTED AND CONSOLIDATED UNIQUENESS CHECK VIEW ---
+
+# ---------- AJAX USERNAME UNIQUENESS ----------
+
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 
-@csrf_exempt # Needed because this is a non-standard AJAX POST request
-@login_required # Requires the user to be logged in
+
+@csrf_exempt
+@login_required
 @require_http_methods(["POST"])
 def check_username_uniqueness(request):
-    if supabase is None:
-        return JsonResponse({"error": "Supabase client is not configured."}, status=503)
-
     try:
         data = json.loads(request.body)
-        username_to_check = data.get('username', '').strip()
+        username_to_check = data.get("username", "").strip()
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON payload."}, status=400)
-    
-    # Use the User model for the username check, since that's where the unique constraint lives
-    current_username = request.user.username 
-    
+
+    current_username = request.user.username
+
     if not username_to_check:
-        # If the username is empty, treat it as valid (let client/server forms handle required check)
         return JsonResponse({"is_available": True}, status=200)
 
-    # If the user hasn't changed their username, it's always available.
     if username_to_check == current_username:
-        return JsonResponse({"is_available": True, "message": "Username is the same."}, status=200)
+        return JsonResponse(
+            {"is_available": True, "message": "Username is the same."},
+            status=200,
+        )
 
-    # Final check against the database
     try:
-        # Check Django's User model if the username is already taken by ANY OTHER user.
-        # This is the authoritative check.
         if User.objects.filter(username__iexact=username_to_check).exists():
             is_available = False
             message = "Username already taken."
@@ -537,8 +581,11 @@ def check_username_uniqueness(request):
             is_available = True
             message = "Username is available."
 
-        return JsonResponse({"is_available": is_available, "message": message}, status=200)
-
+        return JsonResponse(
+            {"is_available": is_available, "message": message}, status=200
+        )
     except Exception as e:
         print(f"Database Query Error: {e}")
-        return JsonResponse({"error": "Database error during availability check."}, status=500)
+        return JsonResponse(
+            {"error": "Database error during availability check."}, status=500
+        )
