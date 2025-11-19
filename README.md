@@ -1,6 +1,5 @@
 # Study Hive – Study Space Finder for CIT-U Students
 
-# Project Description:
 Study Hive aims to provide CIT-U students with a centralized, easy-to-use platform to discover, compare, and assess study spaces in Cebu City. Currently, students waste time searching for suitable study spots, often relying on guesswork, word-of-mouth, or visiting multiple locations only to find them full or unsuitable.
 
 By enabling students to view verified study spaces, see amenities, check historical busyness trends, and see crowdsourced availability updates from peers, Study Hive will help students make informed decisions, reduce stress, and improve productivity—especially during exam periods.
@@ -50,5 +49,5 @@ Libato, Michael Grant S. - Developer (michaelgrant.libato@cit.edu)
 Macansantos, Axcelson O. - Developer (axcelson.macansantos@cit.edu)
 
 # Deployed Link
-TBA
+[https://studyhive-4bn3.onrender.com/](https://studyhive-4bn3.onrender.com/)
 
